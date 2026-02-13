@@ -1,0 +1,12 @@
+{
+    "preset": "laravel",
+    "rules": {
+        "braces": false
+    },
+    "exclude": [
+        "database"
+    ],
+    "notName": [
+        "server.php"
+    ]
+}

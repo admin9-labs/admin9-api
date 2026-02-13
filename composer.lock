@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8b98319d4c9b0e9f7486e7eaf660b677",
+    "content-hash": "5b9c599b3eb63dbbcd81c5f516fcb555",
     "packages": [
         {
             "name": "brick/math",
@@ -2018,6 +2018,53 @@
                 }
             ],
             "time": "2026-01-15T06:54:53+00:00"
+        },
+        {
+            "name": "mitoop/laravel-api-response",
+            "version": "v7.5.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mitoop/laravel-api-response.git",
+                "reference": "e64abb73c64cdcdd2b825669a97a893d9e1b6b63"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mitoop/laravel-api-response/zipball/e64abb73c64cdcdd2b825669a97a893d9e1b6b63",
+                "reference": "e64abb73c64cdcdd2b825669a97a893d9e1b6b63",
+                "shasum": ""
+            },
+            "require": {
+                "laravel/framework": "^11 || ^12",
+                "php": "^8.2"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Mitoop\\Http\\JsonResponderServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Mitoop\\Http\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "mitoop",
+                    "email": "me@mitoop.com"
+                }
+            ],
+            "support": {
+                "issues": "https://github.com/mitoop/laravel-api-response/issues",
+                "source": "https://github.com/mitoop/laravel-api-response/tree/v7.5.1"
+            },
+            "time": "2025-11-02T08:05:07+00:00"
         },
         {
             "name": "monolog/monolog",

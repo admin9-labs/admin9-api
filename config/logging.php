@@ -127,6 +127,18 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        'sql' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/sql.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'permission' => 0664,
+        ],
     ],
 
+    // 查询日志相关配置
+    'query' => [
+        'enabled' => env('ENABLE_QUERY_LOG', false), // 总开关，是否启用 SQL 查询日志
+        'channel' => 'sql', // 日志记录频道
+        'excluded_tables' => ['telescope_'], // 排除表名，支持前缀匹配
+    ],
 ];

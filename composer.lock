@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5b9c599b3eb63dbbcd81c5f516fcb555",
+    "content-hash": "44501c4f5679315a868c986fdabe72cb",
     "packages": [
         {
             "name": "brick/math",
@@ -2065,6 +2065,140 @@
                 "source": "https://github.com/mitoop/laravel-api-response/tree/v7.5.1"
             },
             "time": "2025-11-02T08:05:07+00:00"
+        },
+        {
+            "name": "mitoop/laravel-efficient-form-request",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mitoop/laravel-efficient-form-request.git",
+                "reference": "1fad1fbab570517016be9dc6a7b368e5ed518cb2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mitoop/laravel-efficient-form-request/zipball/1fad1fbab570517016be9dc6a7b368e5ed518cb2",
+                "reference": "1fad1fbab570517016be9dc6a7b368e5ed518cb2",
+                "shasum": ""
+            },
+            "require": {
+                "laravel/framework": "^10.43.0|^11|^12"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.18"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Mitoop\\LaravelEfficientFormRequest\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "mitoop",
+                    "email": "me@mitoop.com"
+                }
+            ],
+            "support": {
+                "issues": "https://github.com/mitoop/laravel-efficient-form-request/issues",
+                "source": "https://github.com/mitoop/laravel-efficient-form-request/tree/v1.0.0"
+            },
+            "time": "2025-10-01T04:48:48+00:00"
+        },
+        {
+            "name": "mitoop/laravel-query-builder",
+            "version": "v2.9.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mitoop/laravel-query-builder.git",
+                "reference": "b33a663ed61fcfc3e9621a64764daa75bdd195ee"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mitoop/laravel-query-builder/zipball/b33a663ed61fcfc3e9621a64764daa75bdd195ee",
+                "reference": "b33a663ed61fcfc3e9621a64764daa75bdd195ee",
+                "shasum": ""
+            },
+            "require": {
+                "laravel/framework": "^11|^12"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Mitoop\\LaravelQueryBuilder\\ServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Mitoop\\LaravelQueryBuilder\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "mitoop",
+                    "email": "me@mitoop.com"
+                }
+            ],
+            "support": {
+                "issues": "https://github.com/mitoop/laravel-query-builder/issues",
+                "source": "https://github.com/mitoop/laravel-query-builder/tree/v2.9.2"
+            },
+            "time": "2025-09-25T08:55:47+00:00"
+        },
+        {
+            "name": "mitoop/laravel-query-logger",
+            "version": "v3.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mitoop/laravel-query-logger.git",
+                "reference": "baa53cbaf7c540e2055fa2a63df9d7df51835475"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mitoop/laravel-query-logger/zipball/baa53cbaf7c540e2055fa2a63df9d7df51835475",
+                "reference": "baa53cbaf7c540e2055fa2a63df9d7df51835475",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/support": "^6|^7|^8|^9|^10|^11|^12"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Mitoop\\LaravelQueryLogger\\ServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Mitoop\\LaravelQueryLogger\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "mitoop",
+                    "email": "me@mitoop.com"
+                }
+            ],
+            "support": {
+                "issues": "https://github.com/mitoop/laravel-query-logger/issues",
+                "source": "https://github.com/mitoop/laravel-query-logger/tree/v3.0.0"
+            },
+            "time": "2025-07-20T07:17:07+00:00"
         },
         {
             "name": "monolog/monolog",

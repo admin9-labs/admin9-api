@@ -3,7 +3,6 @@
 namespace App\Filters;
 
 use Mitoop\LaravelQueryBuilder\AbstractFilter;
-use Mitoop\LaravelQueryBuilder\ValueResolvers\Like;
 use Mitoop\LaravelQueryBuilder\ValueResolvers\LikeAny;
 
 /**
@@ -18,8 +17,8 @@ class UserFilter extends AbstractFilter
         return [
             'id',
             'is_active',
-            'name|like' => new Like,
-            'email|like' => new Like,
+            'name',
+            'email',
             'keyword|like_any' => new LikeAny(['name', 'email']),
         ];
     }

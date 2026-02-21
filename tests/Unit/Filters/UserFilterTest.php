@@ -32,26 +32,26 @@ class UserFilterTest extends TestCase
         $this->assertCount(1, $inactive);
     }
 
-    public function test_filter_by_name_like(): void
+    public function test_filter_by_name_exact(): void
     {
         User::factory()->create(['name' => 'Alice Smith', 'is_active' => true]);
         User::factory()->create(['name' => 'Bob Jones', 'is_active' => true]);
 
-        $results = User::filter(UserFilter::class, ['name' => 'Alice'])->get();
+        $results = User::filter(UserFilter::class, ['name' => 'Alice Smith'])->get();
 
         $this->assertCount(1, $results);
         $this->assertEquals('Alice Smith', $results->first()->name);
     }
 
-    public function test_filter_by_email_like(): void
+    public function test_filter_by_email_exact(): void
     {
         User::factory()->create(['email' => 'alice@example.com', 'is_active' => true]);
         User::factory()->create(['email' => 'bob@test.com', 'is_active' => true]);
 
-        $results = User::filter(UserFilter::class, ['email' => 'example'])->get();
+        $results = User::filter(UserFilter::class, ['email' => 'alice@example.com'])->get();
 
         $this->assertCount(1, $results);
-        $this->assertStringContainsString('example', $results->first()->email);
+        $this->assertEquals('alice@example.com', $results->first()->email);
     }
 
     public function test_filter_by_keyword_searches_name_and_email(): void

@@ -1,59 +1,92 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Admin9 API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Production-ready Laravel 12 REST API scaffold with JWT authentication and RBAC.
 
-## About Laravel
+Clone it, seed it, build your admin backend on top of it.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **JWT Authentication** — Login, logout, token refresh, user profile (`php-open-source-saver/jwt-auth`)
+- **RBAC** — Role-based access control via Spatie Permission, permission-only middleware (`permission:resource.action`)
+- **User Management** — CRUD, role sync, status toggle, password reset, super admin protection
+- **Role & Permission Management** — Full CRUD with permission assignment
+- **Service-Layer Architecture** — Thin controllers, business logic in dedicated service classes
+- **Audit Events** — Event-based audit trail for login attempts, user changes, role changes
+- **Request Tracing** — UUID7 `request_id` on every response and log entry
+- **Query Filtering** — Reusable filter classes via `mitoop/laravel-query-builder`
+- **Scene-Based Validation** — `{scene}Rules()` pattern for multi-scene form requests
+- **API Documentation** — Auto-generated via Scramble
+- **Test Suite** — 131 tests / 347 assertions, in-memory SQLite
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Tech Stack
 
-## Learning Laravel
+| Layer | Choice |
+|-------|--------|
+| Framework | Laravel 12 |
+| PHP | 8.2+ |
+| Auth | JWT (`php-open-source-saver/jwt-auth`) |
+| Authorization | Spatie Laravel Permission |
+| Testing | PHPUnit 11 |
+| Code Style | Laravel Pint |
+| API Docs | Scramble |
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Quick Start
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```bash
+git clone https://github.com/admin9-labs/admin9-api.git
+cd admin9-api
+composer setup
+php artisan db:seed
+composer dev
+```
 
-## Laravel Sponsors
+Default accounts (password: `password`):
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+| Email | Role |
+|-------|------|
+| admin@admin9.com | Super Admin |
+| manager@admin9.com | Admin |
+| user@admin9.com | User |
 
-### Premium Partners
+## Common Commands
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+```bash
+composer dev          # Start server + queue + logs + vite
+composer test         # Run full test suite
+composer pint         # Code formatting
+composer ide-helper   # Generate IDE helper files
+```
 
-## Contributing
+## Project Structure
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```
+app/
+├── Http/Controllers/
+│   ├── Api/            # Auth endpoints
+│   └── Admin/          # User, Role, Permission CRUD
+├── Services/           # Business logic layer
+├── Filters/            # Query filter classes
+├── Events/             # Audit events
+├── Models/
+└── Http/Middleware/     # AddContext, EnsureUserIsActive
 
-## Code of Conduct
+routes/
+├── api.php             # Auth routes
+└── admin.php           # Admin CRUD routes (/api/admin)
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## API Response Format
 
-## Security Vulnerabilities
+All endpoints return HTTP 200. Business status is in the JSON body:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```json
+{
+  "success": true,
+  "code": 0,
+  "data": {}
+}
+```
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+[MIT](LICENSE)

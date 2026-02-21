@@ -66,7 +66,7 @@ abstract class TestCase extends BaseTestCase
         return $response->assertOk()->assertJsonPath('success', true);
     }
 
-    protected function assertBusinessError(TestResponse $response, int $code = 400): TestResponse
+    protected function assertBusinessError(TestResponse $response, int $code = 1): TestResponse
     {
         return $response->assertOk()->assertJsonPath('success', false)->assertJsonPath('code', $code);
     }

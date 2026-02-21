@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\UserService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
+use Throwable;
 
 /**
  * @scaffold — User CRUD + role sync + status toggle + password reset.
@@ -47,6 +48,7 @@ class UserController extends Controller
      * Update user.
      *
      * @throws BusinessException
+     * @throws Throwable
      */
     public function update(UserRequest $request, User $user): JsonResponse
     {
@@ -63,6 +65,7 @@ class UserController extends Controller
      * Toggle user status.
      *
      * @throws BusinessException
+     * @throws Throwable
      */
     public function toggleStatus(UserRequest $request, User $user): JsonResponse
     {
@@ -75,11 +78,12 @@ class UserController extends Controller
      * Reset user password.
      *
      * @throws BusinessException
+     * @throws Throwable
      */
     public function resetPassword(User $user): JsonResponse
     {
         $this->userService->resetPassword($user);
 
-        return $this->success(['message' => 'Password has been reset. Please use CLI command to retrieve the new password.']);
+        return $this->success();
     }
 }

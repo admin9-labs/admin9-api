@@ -33,7 +33,7 @@ class AuthController extends Controller
                 'email' => $request->input('email'),
             ]);
 
-            return $this->error('Invalid credentials', 401);
+            return $this->error('Invalid credentials');
         }
 
         $user = $this->auth->user();
@@ -44,7 +44,7 @@ class AuthController extends Controller
                 'email' => $request->input('email'),
             ]);
 
-            return $this->error('Your account has been disabled', 403);
+            return $this->error('Your account has been disabled');
         }
 
         AuditLoginAttempted::dispatch('login_success', $user->id);
@@ -73,7 +73,7 @@ class AuthController extends Controller
     {
         $this->auth->logout();
 
-        return $this->success(['message' => 'Successfully logged out']);
+        return $this->success();
     }
 
     /**
@@ -86,7 +86,7 @@ class AuthController extends Controller
             if ($user && ! $user->is_active) {
                 $this->auth->logout();
 
-                return $this->error('Your account has been disabled', 403);
+                return $this->error('Your account has been disabled');
             }
 
             $token = $this->auth->refresh(true, true);
@@ -96,14 +96,14 @@ class AuthController extends Controller
             if ($user && ! $user->is_active) {
                 $this->auth->logout();
 
-                return $this->error('Your account has been disabled', 403);
+                return $this->error('Your account has been disabled');
             }
 
             return $this->respondWithToken($token);
         } catch (TokenBlacklistedException $e) {
-            return $this->error('Token has been blacklisted', 401);
+            return $this->error('Token has been blacklisted');
         } catch (JWTException $e) {
-            return $this->error('Could not refresh token', 401);
+            return $this->error('Could not refresh token');
         }
     }
 

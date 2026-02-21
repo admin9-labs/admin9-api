@@ -225,6 +225,6 @@ class TokenTest extends TestCase
         $response = $this->withHeaders(['Authorization' => "Bearer {$token}"])
             ->postJson('/api/auth/refresh');
 
-        $this->assertBusinessError($response, 401);
+        $this->assertBusinessError($response);
     }
 }

@@ -41,7 +41,7 @@ class LoginTest extends TestCase
             'password' => 'wrong-password',
         ]);
 
-        $this->assertBusinessError($response, 401);
+        $this->assertBusinessError($response);
     }
 
     public function test_disabled_user_cannot_login(): void
@@ -56,7 +56,7 @@ class LoginTest extends TestCase
             'password' => 'password',
         ]);
 
-        $this->assertBusinessError($response, 403);
+        $this->assertBusinessError($response);
     }
 
     public function test_login_returns_token_info(): void
@@ -124,7 +124,7 @@ class LoginTest extends TestCase
             'password' => 'password',
         ]);
 
-        $this->assertBusinessError($response, 401);
+        $this->assertBusinessError($response);
     }
 
     public function test_login_fails_with_invalid_email_format(): void

@@ -301,20 +301,4 @@ class RoleTest extends TestCase
             'guard_name' => 'api',
         ]);
     }
-
-    public function test_roles_list_respects_page_size_parameter(): void
-    {
-        $this->actingAsUser(['roles.read']);
-
-        for ($i = 0; $i < 5; $i++) {
-            Role::findOrCreate("role-{$i}", 'api');
-        }
-
-        $response = $this->getJson('/api/admin/roles?page_size=2');
-
-        $this->assertBusinessSuccess($response)
-            ->assertJsonPath('meta.page_size', 2);
-
-        $this->assertCount(2, $response->json('data'));
-    }
 }

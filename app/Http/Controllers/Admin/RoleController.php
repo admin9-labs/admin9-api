@@ -10,6 +10,7 @@ use App\Services\RoleService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Spatie\Permission\Models\Role;
+use Throwable;
 
 /**
  * @scaffold — Role CRUD + permission sync.
@@ -30,7 +31,7 @@ class RoleController extends Controller
             ->where('guard_name', 'api')
             ->filter(RoleFilter::class)
             ->with('permissions:id,name')
-            ->paginate(min(max((int) request()->input('page_size', 15), 1), 100));
+            ->paginate();
 
         return $this->success($roles);
     }
@@ -39,6 +40,7 @@ class RoleController extends Controller
      * Create role.
      *
      * @throws BusinessException
+     * @throws Throwable
      */
     public function store(RoleRequest $request): JsonResponse
     {
@@ -64,6 +66,7 @@ class RoleController extends Controller
      * Update role.
      *
      * @throws BusinessException
+     * @throws Throwable
      */
     public function update(RoleRequest $request, Role $role): JsonResponse
     {
@@ -80,6 +83,7 @@ class RoleController extends Controller
      * Delete role.
      *
      * @throws BusinessException
+     * @throws Throwable
      */
     public function destroy(Role $role): JsonResponse
     {

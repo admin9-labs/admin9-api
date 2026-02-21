@@ -7,7 +7,12 @@ use App\Listeners\AuditLogSubscriber;
 use App\Support\Scramble\FilterQueryParametersExtractor;
 use App\Support\Scramble\SceneFormRequestParametersExtractor;
 use Dedoc\Scramble\Scramble;
+use Dedoc\Scramble\Support\OperationExtensions\DeprecationExtension;
 use Dedoc\Scramble\Support\OperationExtensions\ParameterExtractor\FormRequestParametersExtractor;
+use Dedoc\Scramble\Support\OperationExtensions\RequestBodyExtension;
+use Dedoc\Scramble\Support\OperationExtensions\RequestEssentialsExtension;
+use Dedoc\Scramble\Support\OperationExtensions\ResponseExtension;
+use Dedoc\Scramble\Support\OperationExtensions\ResponseHeadersExtension;
 use Illuminate\Console\Events\ArtisanStarting;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Database\Eloquent\Model;
@@ -67,6 +72,16 @@ class AppServiceProvider extends ServiceProvider
         Event::subscribe(AuditLogSubscriber::class);
 
         if (class_exists(Scramble::class)) {
+            // Remove ErrorResponsesExtension to prevent Scramble from inferring
+            // 401/404/422 responses — this project always returns HTTP 200.
+            Scramble::configure()->operationTransformers->use([
+                RequestEssentialsExtension::class,
+                RequestBodyExtension::class,
+                ResponseExtension::class,
+                ResponseHeadersExtension::class,
+                DeprecationExtension::class,
+            ]);
+
             Scramble::configure()->parametersExtractors->prepend([
                 SceneFormRequestParametersExtractor::class,
                 FilterQueryParametersExtractor::class,

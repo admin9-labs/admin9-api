@@ -1,8 +1,8 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "admin9-labs/admin9-api",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "Admin9 API - Laravel 12 REST API scaffold with JWT auth and RBAC.",
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {
@@ -12,10 +12,13 @@
         "mitoop/laravel-api-response": "^7.5",
         "mitoop/laravel-efficient-form-request": "^1.0",
         "mitoop/laravel-query-builder": "^2.9",
-        "mitoop/laravel-query-logger": "^3.0"
+        "mitoop/laravel-query-logger": "^3.0",
+        "php-open-source-saver/jwt-auth": "^2.8",
+        "spatie/laravel-permission": "^6.24"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^3.6",
+        "dedoc/scramble": "^0.13.13",
         "fakerphp/faker": "^1.23",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.24",
@@ -29,7 +32,10 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
-        }
+        },
+        "files": [
+            "app/Support/helpers.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
@@ -41,6 +47,7 @@
             "composer install",
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
             "@php artisan key:generate",
+            "@php artisan jwt:secret --force",
             "@php artisan migrate --force",
             "npm install",
             "npm run build"
@@ -72,7 +79,7 @@
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
         ],
         "pint": [
-            "./vendor/bin/pint --parallel --preset=laravel"
+            "./vendor/bin/pint --parallel"
         ],
         "ide-helper": [
             "@php artisan ide-helper:generate",

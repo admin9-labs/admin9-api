@@ -4,6 +4,10 @@ namespace App\Providers;
 
 use App\Enums\Role;
 use App\Listeners\AuditLogSubscriber;
+use App\Support\Scramble\FilterQueryParametersExtractor;
+use App\Support\Scramble\SceneFormRequestParametersExtractor;
+use Dedoc\Scramble\Scramble;
+use Dedoc\Scramble\Support\OperationExtensions\ParameterExtractor\FormRequestParametersExtractor;
 use Illuminate\Console\Events\ArtisanStarting;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Database\Eloquent\Model;
@@ -14,6 +18,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Mitoop\Http\Exceptions\Handler;
 use Mitoop\Http\JsonResponderDefault;
+use Mitoop\LaravelEfficientFormRequest\EfficientSceneFormRequest;
 use Mitoop\LaravelQueryLogger\QueryDebugger;
 
 class AppServiceProvider extends ServiceProvider
@@ -60,5 +65,16 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Event::subscribe(AuditLogSubscriber::class);
+
+        if (class_exists(Scramble::class)) {
+            Scramble::configure()->parametersExtractors->prepend([
+                SceneFormRequestParametersExtractor::class,
+                FilterQueryParametersExtractor::class,
+            ]);
+
+            FormRequestParametersExtractor::ignoreInstanceOf(
+                EfficientSceneFormRequest::class,
+            );
+        }
     }
 }

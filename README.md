@@ -44,9 +44,9 @@ Default accounts (password: `password`):
 
 | Email | Role |
 |-------|------|
-| admin@admin9.com | Super Admin |
-| manager@admin9.com | Admin |
-| user@admin9.com | User |
+| admin@admin9.dev | Super Admin |
+| manager@admin9.dev | Admin |
+| user@admin9.dev | User |
 
 ## Common Commands
 

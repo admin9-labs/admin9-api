@@ -29,21 +29,21 @@ class DatabaseSeeder extends Seeder
         // Super Admin
         $superAdmin = User::factory()->create([
             'name' => 'Admin',
-            'email' => 'admin@admin9.com',
+            'email' => 'admin@admin9.dev',
         ]);
         $superAdmin->assignRole(Role::SuperAdmin->value);
 
         // Admin
         $admin = User::factory()->create([
             'name' => 'Manager',
-            'email' => 'manager@admin9.com',
+            'email' => 'manager@admin9.dev',
         ]);
         $admin->assignRole(Role::Admin->value);
 
         // User
         $user = User::factory()->create([
             'name' => 'User',
-            'email' => 'user@admin9.com',
+            'email' => 'user@admin9.dev',
         ]);
         $user->assignRole(Role::User->value);
 

@@ -18,7 +18,7 @@ class EnsureUserIsActive
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (! $request->bearerToken()) {
+        if (! auth('api')->check()) {
             return $next($request);
         }
 

@@ -20,6 +20,9 @@ class AddContext
         Context::add('request_id', app('request_id'));
         Context::add('ip', $request->ip());
 
-        return $next($request);
+        $response = $next($request);
+        $response->headers->set('X-Request-Id', Context::get('request_id'));
+
+        return $response;
     }
 }

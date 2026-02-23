@@ -10,12 +10,14 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Mitoop\LaravelQueryBuilder\Traits\HasFilter;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, HasFilter, HasJWT, HasModelDefaults, HasRoles, Notifiable;
+    use HasFactory, HasFilter, HasJWT, HasModelDefaults, HasRoles, LogsActivity, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -50,5 +52,10 @@ class User extends Authenticatable implements JWTSubject
             'password' => 'hashed',
             'is_active' => 'boolean',
         ];
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()->useLogName('user')->logAll()->logExcept(['password'])->logOnlyDirty()->dontLogIfAttributesChangedOnly(['updated_at'])->dontSubmitEmptyLogs();
     }
 }

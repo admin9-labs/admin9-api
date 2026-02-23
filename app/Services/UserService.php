@@ -3,13 +3,14 @@
 namespace App\Services;
 
 use App\Enums\Role as RoleEnum;
-use App\Events\AuditUserChanged;
 use App\Exceptions\BusinessException;
 use App\Models\User;
+use App\Notifications\PasswordResetNotification;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Role as SpatieRole;
 use Throwable;
 
 /**
@@ -41,23 +42,21 @@ class UserService
             }
 
             $changes = collect($data)->only(['name', 'email'])->toArray();
-            $original = collect($user->only(['name', 'email']));
 
             $user->update($changes);
-
-            $dirty = $original->diffAssoc(collect($changes))->keys()->all();
-            if (! empty($dirty)) {
-                DB::afterCommit(fn () => AuditUserChanged::dispatch('info_updated', $user->id, [
-                    'changed_fields' => $dirty,
-                ]));
-            }
 
             if ($roleIds !== null) {
                 $roles = $this->syncRoles($user, $roleIds);
 
-                DB::afterCommit(fn () => AuditUserChanged::dispatch('roles_synced', $user->id, [
-                    'roles' => $roles->pluck('name')->all(),
-                ]));
+                DB::afterCommit(fn () => activity('user')
+                    ->performedOn($user)
+                    ->causedBy(auth()->user())
+                    ->event('roles_synced')
+                    ->withProperties(array_filter([
+                        'roles' => $roles->pluck('name')->all(),
+                        'ip' => Context::get('ip'),
+                    ], fn ($v) => $v !== null))
+                    ->log('roles_synced'));
             }
 
             $user->load('roles:id,name');
@@ -77,7 +76,7 @@ class UserService
 
         $roleIds = array_values(array_unique($roleIds));
 
-        $roles = Role::whereIn('id', $roleIds)->where('guard_name', 'api')->get();
+        $roles = SpatieRole::whereIn('id', $roleIds)->where('guard_name', 'api')->get();
 
         if ($roles->count() !== count($roleIds)) {
             throw new BusinessException('Invalid role IDs', 422);
@@ -110,14 +109,24 @@ class UserService
             return $user;
         }
 
-        return DB::transaction(function () use ($user, $isActive, $operatorId) {
+        return DB::transaction(function () use ($user, $isActive) {
             // forceFill: is_active is intentionally excluded from $fillable to prevent mass-assignment
-            $user->forceFill(['is_active' => $isActive])->save();
+            $user->disableLogging();
+            try {
+                $user->forceFill(['is_active' => $isActive])->save();
+            } finally {
+                $user->enableLogging();
+            }
 
-            DB::afterCommit(fn () => AuditUserChanged::dispatch('status_changed', $user->id, [
-                'is_active' => $isActive,
-                'operator_id' => $operatorId,
-            ]));
+            DB::afterCommit(fn () => activity('user')
+                ->performedOn($user)
+                ->causedBy(auth()->user())
+                ->event('status_toggled')
+                ->withProperties(array_filter([
+                    'is_active' => $isActive,
+                    'ip' => Context::get('ip'),
+                ], fn ($v) => $v !== null))
+                ->log('status_toggled'));
 
             $user->load('roles:id,name');
 
@@ -128,22 +137,29 @@ class UserService
     /**
      * @throws BusinessException
      * @throws Throwable
-     *
-     * @internal Return value is for CLI commands only. Controllers must not expose the password.
      */
-    public function resetPassword(User $user): string
+    public function resetPassword(User $user): void
     {
         if ($user->hasRole(RoleEnum::SuperAdmin->value)) {
             throw new BusinessException('Cannot reset super-admin password via API', 403);
         }
 
-        return DB::transaction(function () use ($user) {
+        DB::transaction(function () use ($user) {
             $password = Str::password(16);
             $user->update(['password' => $password]);
 
-            DB::afterCommit(fn () => AuditUserChanged::dispatch('password_reset', $user->id));
+            DB::afterCommit(function () use ($user, $password) {
+                activity('user')
+                    ->performedOn($user)
+                    ->causedBy(auth()->user())
+                    ->event('password_reset')
+                    ->withProperties(array_filter([
+                        'ip' => Context::get('ip'),
+                    ], fn ($v) => $v !== null))
+                    ->log('password_reset');
 
-            return $password;
+                $user->notify(new PasswordResetNotification($password));
+            });
         });
     }
 }

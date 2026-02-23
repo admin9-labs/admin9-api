@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Events\AuditLoginAttempted;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\AuthRequest;
+use App\Services\AuthService;
+use App\Services\MenuService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Container\Attributes\Auth;
 use Illuminate\Contracts\Auth\Guard;
@@ -19,7 +20,10 @@ use PHPOpenSourceSaver\JWTAuth\Exceptions\TokenBlacklistedException;
 #[Group('Auth', weight: 0)]
 class AuthController extends Controller
 {
-    public function __construct(#[Auth('api')] protected Guard $auth) {}
+    public function __construct(
+        #[Auth('api')] protected Guard $auth,
+        private readonly AuthService $authService,
+    ) {}
 
     /**
      * Login.
@@ -29,9 +33,7 @@ class AuthController extends Controller
         $credentials = $request->validated();
 
         if (! $token = $this->auth->attempt($credentials)) {
-            AuditLoginAttempted::dispatch('login_failed', null, [
-                'email' => $request->input('email'),
-            ]);
+            $this->authService->logLoginFailed($request->input('email'), $request->header('User-Agent'));
 
             return $this->error('Invalid credentials');
         }
@@ -40,20 +42,20 @@ class AuthController extends Controller
         if (! $user->is_active) {
             $this->auth->logout();
 
-            AuditLoginAttempted::dispatch('login_blocked_inactive', $user->id, [
-                'email' => $request->input('email'),
-            ]);
+            $this->authService->logLoginBlockedInactive($user, $request->input('email'), $request->header('User-Agent'));
 
             return $this->error('Your account has been disabled');
         }
 
-        AuditLoginAttempted::dispatch('login_success', $user->id);
+        $this->authService->logLoginSuccess($user, $request->header('User-Agent'));
 
         return $this->respondWithToken($token);
     }
 
     /**
      * Current user info.
+     *
+     * @response array{id: int, name: string, email: string, roles: string[]}
      */
     public function me(Request $request): JsonResponse
     {
@@ -107,6 +109,19 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * Current user menu tree.
+     *
+     * @response array<int, array{name: string, path: ?string, component: ?string, meta: array{locale: ?string, icon: ?string, requiresAuth: bool, hideInMenu: bool, order: int}, children: array<int, mixed>}>
+     */
+    public function menu(Request $request, MenuService $menuService): JsonResponse
+    {
+        return $this->success($menuService->getMenuTreeForUser($request->user()));
+    }
+
+    /**
+     * @response array{access_token: string, token_type: string, expires_in: int}
+     */
     protected function respondWithToken(string $token): JsonResponse
     {
         return $this->success([

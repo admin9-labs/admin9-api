@@ -85,4 +85,14 @@ class Menu extends Model
     {
         return LogOptions::defaults()->useLogName('menu')->logFillable()->logOnlyDirty()->dontLogIfAttributesChangedOnly(['updated_at'])->dontSubmitEmptyLogs();
     }
+
+    public function getDescriptionForEvent(string $eventName): string
+    {
+        return match ($eventName) {
+            'created' => 'Menu created',
+            'updated' => 'Menu updated',
+            'deleted' => 'Menu deleted',
+            default => $eventName,
+        };
+    }
 }

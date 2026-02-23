@@ -38,4 +38,14 @@ class DictionaryItem extends Model
     {
         return LogOptions::defaults()->useLogName('dict_item')->logFillable()->logOnlyDirty()->dontLogIfAttributesChangedOnly(['updated_at'])->dontSubmitEmptyLogs();
     }
+
+    public function getDescriptionForEvent(string $eventName): string
+    {
+        return match ($eventName) {
+            'created' => 'Dictionary item created',
+            'updated' => 'Dictionary item updated',
+            'deleted' => 'Dictionary item deleted',
+            default => $eventName,
+        };
+    }
 }

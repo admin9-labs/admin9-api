@@ -58,4 +58,14 @@ class User extends Authenticatable implements JWTSubject
     {
         return LogOptions::defaults()->useLogName('user')->logAll()->logExcept(['password'])->logOnlyDirty()->dontLogIfAttributesChangedOnly(['updated_at'])->dontSubmitEmptyLogs();
     }
+
+    public function getDescriptionForEvent(string $eventName): string
+    {
+        return match ($eventName) {
+            'created' => 'User created',
+            'updated' => 'User updated',
+            'deleted' => 'User deleted',
+            default => $eventName,
+        };
+    }
 }

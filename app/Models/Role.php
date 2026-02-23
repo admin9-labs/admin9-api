@@ -24,4 +24,14 @@ class Role extends SpatieRole
     {
         return LogOptions::defaults()->useLogName('role')->logOnly(['name', 'guard_name', 'locale'])->logOnlyDirty()->dontLogIfAttributesChangedOnly(['updated_at'])->dontSubmitEmptyLogs();
     }
+
+    public function getDescriptionForEvent(string $eventName): string
+    {
+        return match ($eventName) {
+            'created' => 'Role created',
+            'updated' => 'Role updated',
+            'deleted' => 'Role deleted',
+            default => $eventName,
+        };
+    }
 }

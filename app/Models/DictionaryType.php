@@ -38,4 +38,14 @@ class DictionaryType extends Model
     {
         return LogOptions::defaults()->useLogName('dict_type')->logFillable()->logOnlyDirty()->dontLogIfAttributesChangedOnly(['updated_at'])->dontSubmitEmptyLogs();
     }
+
+    public function getDescriptionForEvent(string $eventName): string
+    {
+        return match ($eventName) {
+            'created' => 'Dictionary type created',
+            'updated' => 'Dictionary type updated',
+            'deleted' => 'Dictionary type deleted',
+            default => $eventName,
+        };
+    }
 }

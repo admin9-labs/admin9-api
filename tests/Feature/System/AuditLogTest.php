@@ -139,7 +139,7 @@ class AuditLogTest extends TestCase
 
         $this->assertDatabaseHas('activity_log', [
             'log_name' => 'role',
-            'description' => 'created',
+            'event' => 'created_with_menus',
         ]);
     }
 }

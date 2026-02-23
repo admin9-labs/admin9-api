@@ -33,7 +33,7 @@ class AuthController extends Controller
         $credentials = $request->validated();
 
         if (! $token = $this->auth->attempt($credentials)) {
-            $this->authService->logLoginFailed($request->input('email'), $request->header('User-Agent'));
+            $this->authService->logLoginFailed($request->input('email'));
 
             return $this->error('Invalid credentials');
         }
@@ -42,12 +42,12 @@ class AuthController extends Controller
         if (! $user->is_active) {
             $this->auth->logout();
 
-            $this->authService->logLoginBlockedInactive($user, $request->input('email'), $request->header('User-Agent'));
+            $this->authService->logLoginBlockedInactive($user, $request->input('email'));
 
             return $this->error('Your account has been disabled');
         }
 
-        $this->authService->logLoginSuccess($user, $request->header('User-Agent'));
+        $this->authService->logLoginSuccess($user);
 
         return $this->respondWithToken($token);
     }

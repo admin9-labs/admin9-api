@@ -6,7 +6,6 @@ use App\Enums\Role as RoleEnum;
 use App\Exceptions\BusinessException;
 use App\Models\Menu;
 use App\Models\User;
-use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
@@ -177,11 +176,10 @@ class MenuService
             activity('menu')
                 ->causedBy(auth()->user())
                 ->event('permission_cleared')
-                ->withProperties(array_filter([
+                ->withProperties([
                     'old_permission' => $oldPermission,
-                    'ip' => Context::get('ip'),
-                ], fn ($v) => $v !== null))
-                ->log('permission_cleared');
+                ])
+                ->log('Permission cleared');
         }
 
         $oldPerm->delete();

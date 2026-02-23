@@ -6,7 +6,6 @@ use App\Enums\Role as RoleEnum;
 use App\Exceptions\BusinessException;
 use App\Models\Menu;
 use App\Models\Role;
-use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\PermissionRegistrar;
 use Throwable;
@@ -48,11 +47,10 @@ class RoleService
                 ->performedOn($role)
                 ->causedBy(auth()->user())
                 ->event('created_with_menus')
-                ->withProperties(array_filter([
+                ->withProperties([
                     'menu_ids' => $menuIds,
-                    'ip' => Context::get('ip'),
-                ], fn ($v) => $v !== null))
-                ->log('created_with_menus'));
+                ])
+                ->log('Role created with menus'));
 
             return $role;
         });
@@ -87,11 +85,10 @@ class RoleService
                     ->performedOn($role)
                     ->causedBy(auth()->user())
                     ->event('menus_synced')
-                    ->withProperties(array_filter([
+                    ->withProperties([
                         'menu_ids' => $menuIds,
-                        'ip' => Context::get('ip'),
-                    ], fn ($v) => $v !== null))
-                    ->log('menus_synced'));
+                    ])
+                    ->log('Role menus synced'));
             }
 
             $role->load('menus');
@@ -134,12 +131,11 @@ class RoleService
             DB::afterCommit(fn () => activity('role')
                 ->causedBy(auth()->user())
                 ->event('deleted')
-                ->withProperties(array_filter([
+                ->withProperties([
                     'role_id' => $roleId,
                     'role_name' => $roleName,
-                    'ip' => Context::get('ip'),
-                ], fn ($v) => $v !== null))
-                ->log('deleted'));
+                ])
+                ->log('Role deleted'));
         });
     }
 

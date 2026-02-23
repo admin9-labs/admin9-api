@@ -28,7 +28,6 @@ class AuditEventTest extends TestCase
 
         $this->assertDatabaseHas('activity_log', [
             'log_name' => 'user',
-            'description' => 'roles_synced',
             'event' => 'roles_synced',
             'subject_id' => $user->id,
         ]);
@@ -44,7 +43,6 @@ class AuditEventTest extends TestCase
 
         $this->assertDatabaseHas('activity_log', [
             'log_name' => 'user',
-            'description' => 'password_reset',
             'event' => 'password_reset',
             'subject_id' => $user->id,
         ]);
@@ -61,7 +59,6 @@ class AuditEventTest extends TestCase
 
         $this->assertDatabaseHas('activity_log', [
             'log_name' => 'auth',
-            'description' => 'login_success',
             'event' => 'login_success',
         ]);
     }
@@ -74,7 +71,6 @@ class AuditEventTest extends TestCase
 
         $this->assertDatabaseHas('activity_log', [
             'log_name' => 'auth',
-            'description' => 'login_failed',
             'event' => 'login_failed',
         ]);
     }
@@ -88,7 +84,6 @@ class AuditEventTest extends TestCase
 
         $this->assertDatabaseHas('activity_log', [
             'log_name' => 'auth',
-            'description' => 'login_blocked_inactive',
             'event' => 'login_blocked_inactive',
         ]);
     }
@@ -206,7 +201,7 @@ class AuditEventTest extends TestCase
         $this->deleteJson("/api/system/roles/{$role->id}");
 
         $logs = \Spatie\Activitylog\Models\Activity::where('log_name', 'role')
-            ->where('description', 'deleted')
+            ->where('event', 'deleted')
             ->where('properties->role_id', $roleId)
             ->get();
 

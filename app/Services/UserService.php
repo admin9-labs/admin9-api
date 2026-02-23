@@ -7,7 +7,6 @@ use App\Exceptions\BusinessException;
 use App\Models\User;
 use App\Notifications\PasswordResetNotification;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role as SpatieRole;
@@ -46,17 +45,21 @@ class UserService
             $user->update($changes);
 
             if ($roleIds !== null) {
-                $roles = $this->syncRoles($user, $roleIds);
+                $oldRoleIds = $user->roles()->pluck('id')->sort()->values()->all();
+                $newRoleIds = collect($roleIds)->sort()->values()->all();
 
-                DB::afterCommit(fn () => activity('user')
-                    ->performedOn($user)
-                    ->causedBy(auth()->user())
-                    ->event('roles_synced')
-                    ->withProperties(array_filter([
-                        'roles' => $roles->pluck('name')->all(),
-                        'ip' => Context::get('ip'),
-                    ], fn ($v) => $v !== null))
-                    ->log('roles_synced'));
+                if ($oldRoleIds !== $newRoleIds) {
+                    $roles = $this->syncRoles($user, $roleIds);
+
+                    DB::afterCommit(fn () => activity('user')
+                        ->performedOn($user)
+                        ->causedBy(auth()->user())
+                        ->event('roles_synced')
+                        ->withProperties([
+                            'roles' => $roles->pluck('name')->all(),
+                        ])
+                        ->log('User roles synced'));
+                }
             }
 
             $user->load('roles:id,name');
@@ -122,11 +125,10 @@ class UserService
                 ->performedOn($user)
                 ->causedBy(auth()->user())
                 ->event('status_toggled')
-                ->withProperties(array_filter([
+                ->withProperties([
                     'is_active' => $isActive,
-                    'ip' => Context::get('ip'),
-                ], fn ($v) => $v !== null))
-                ->log('status_toggled'));
+                ])
+                ->log($isActive ? 'User account enabled' : 'User account disabled'));
 
             $user->load('roles:id,name');
 
@@ -153,10 +155,7 @@ class UserService
                     ->performedOn($user)
                     ->causedBy(auth()->user())
                     ->event('password_reset')
-                    ->withProperties(array_filter([
-                        'ip' => Context::get('ip'),
-                    ], fn ($v) => $v !== null))
-                    ->log('password_reset');
+                    ->log('User password reset');
 
                 $user->notify(new PasswordResetNotification($password));
             });

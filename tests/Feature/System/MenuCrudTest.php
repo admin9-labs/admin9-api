@@ -327,7 +327,6 @@ class MenuCrudTest extends TestCase
         $this->assertDatabaseHas('activity_log', [
             'log_name' => 'menu',
             'event' => 'permission_cleared',
-            'description' => 'permission_cleared',
         ]);
     }
 }

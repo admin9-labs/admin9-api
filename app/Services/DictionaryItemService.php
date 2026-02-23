@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Exceptions\BusinessException;
 use App\Models\DictionaryItem;
 use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\Context;
 
 /**
  * @scaffold
@@ -55,13 +54,12 @@ class DictionaryItemService
         activity('dict_item')
             ->causedBy(auth()->user())
             ->event('deleted')
-            ->withProperties(array_filter([
+            ->withProperties([
                 'item_id' => $itemId,
                 'item_value' => $itemValue,
                 'dictionary_type_id' => $typeId,
-                'ip' => Context::get('ip'),
-            ], fn ($v) => $v !== null))
-            ->log('deleted');
+            ])
+            ->log('Dictionary item deleted');
     }
 
     private function isUniqueConstraintViolation(QueryException $e): bool

@@ -55,9 +55,7 @@ class DictionaryItemService
             ->causedBy(auth()->user())
             ->event('deleted')
             ->withProperties([
-                'item_id' => $itemId,
-                'item_value' => $itemValue,
-                'dictionary_type_id' => $typeId,
+                'old' => ['item_id' => $itemId, 'item_value' => $itemValue, 'dictionary_type_id' => $typeId],
             ])
             ->log('Dictionary item deleted');
     }

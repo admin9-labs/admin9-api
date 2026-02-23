@@ -61,8 +61,7 @@ class DictionaryTypeService
             ->causedBy(auth()->user())
             ->event('deleted')
             ->withProperties([
-                'type_id' => $typeId,
-                'type_code' => $typeCode,
+                'old' => ['type_id' => $typeId, 'type_code' => $typeCode],
             ])
             ->log('Dictionary type deleted');
     }

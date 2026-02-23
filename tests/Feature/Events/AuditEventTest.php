@@ -202,7 +202,7 @@ class AuditEventTest extends TestCase
 
         $logs = \Spatie\Activitylog\Models\Activity::where('log_name', 'role')
             ->where('event', 'deleted')
-            ->where('properties->role_id', $roleId)
+            ->where('properties->old->role_id', $roleId)
             ->get();
 
         $this->assertCount(1, $logs);

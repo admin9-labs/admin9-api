@@ -45,6 +45,7 @@ class UserService
             $user->update($changes);
 
             if ($roleIds !== null) {
+                $oldRoles = $user->roles()->pluck('name')->all();
                 $oldRoleIds = $user->roles()->pluck('id')->sort()->values()->all();
                 $newRoleIds = collect($roleIds)->sort()->values()->all();
 
@@ -56,7 +57,8 @@ class UserService
                         ->causedBy(auth()->user())
                         ->event('roles_synced')
                         ->withProperties([
-                            'roles' => $roles->pluck('name')->all(),
+                            'old' => ['roles' => $oldRoles],
+                            'attributes' => ['roles' => $roles->pluck('name')->all()],
                         ])
                         ->log('User roles synced'));
                 }
@@ -126,7 +128,8 @@ class UserService
                 ->causedBy(auth()->user())
                 ->event('status_toggled')
                 ->withProperties([
-                    'is_active' => $isActive,
+                    'old' => ['is_active' => ! $isActive],
+                    'attributes' => ['is_active' => $isActive],
                 ])
                 ->log($isActive ? 'User account enabled' : 'User account disabled'));
 

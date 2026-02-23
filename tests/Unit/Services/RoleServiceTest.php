@@ -190,7 +190,7 @@ class RoleServiceTest extends TestCase
         $this->service->deleteRole($role);
 
         $logs = \Spatie\Activitylog\Models\Activity::where('log_name', 'role')
-            ->where('properties->role_id', $roleId)
+            ->where('properties->old->role_id', $roleId)
             ->get();
 
         $this->assertCount(1, $logs);

@@ -177,7 +177,7 @@ class MenuService
                 ->causedBy(auth()->user())
                 ->event('permission_cleared')
                 ->withProperties([
-                    'old_permission' => $oldPermission,
+                    'old' => ['permission' => $oldPermission],
                 ])
                 ->log('Permission cleared');
         }

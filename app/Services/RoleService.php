@@ -48,7 +48,7 @@ class RoleService
                 ->causedBy(auth()->user())
                 ->event('created_with_menus')
                 ->withProperties([
-                    'menu_ids' => $menuIds,
+                    'attributes' => ['menu_ids' => $menuIds],
                 ])
                 ->log('Role created with menus'));
 
@@ -75,6 +75,8 @@ class RoleService
         }
 
         return DB::transaction(function () use ($role, $name, $menuIds, $locale) {
+            $oldMenuIds = $role->menus()->pluck('menus.id')->all();
+
             $role->update(['name' => $name, 'locale' => $locale]);
 
             if ($menuIds !== null) {
@@ -86,7 +88,8 @@ class RoleService
                     ->causedBy(auth()->user())
                     ->event('menus_synced')
                     ->withProperties([
-                        'menu_ids' => $menuIds,
+                        'old' => ['menu_ids' => $oldMenuIds],
+                        'attributes' => ['menu_ids' => $menuIds],
                     ])
                     ->log('Role menus synced'));
             }
@@ -132,8 +135,7 @@ class RoleService
                 ->causedBy(auth()->user())
                 ->event('deleted')
                 ->withProperties([
-                    'role_id' => $roleId,
-                    'role_name' => $roleName,
+                    'old' => ['role_id' => $roleId, 'role_name' => $roleName],
                 ])
                 ->log('Role deleted'));
         });

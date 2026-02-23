@@ -16,7 +16,8 @@ class AddContext
      */
     public function handle(Request $request, Closure $next): Response
     {
-        Context::add('url', sprintf('%s|%s', $request->method(), $request->url()));
+        Context::add('request_method', $request->method());
+        Context::add('request_url', $request->url());
         Context::add('request_id', app('request_id'));
         Context::add('ip', $request->ip());
         Context::add('user_agent', $request->userAgent());

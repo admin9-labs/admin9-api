@@ -63,7 +63,7 @@ composer ide-helper   # Generate IDE helper files
 app/
 ├── Http/Controllers/
 │   ├── Api/            # Auth endpoints
-│   └── Admin/          # User, Role, Permission CRUD
+│   └── System/         # User, Role, Menu CRUD
 ├── Services/           # Business logic layer
 ├── Filters/            # Query filter classes
 ├── Events/             # Audit events
@@ -72,7 +72,7 @@ app/
 
 routes/
 ├── api.php             # Auth routes
-└── admin.php           # Admin CRUD routes (/api/admin)
+└── system.php          # System CRUD routes (/api/system)
 ```
 
 ## API Response Format

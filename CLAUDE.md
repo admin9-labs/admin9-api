@@ -74,7 +74,7 @@ Route → Middleware (`auth:api` → `EnsureUserIsActive` → `permission:xxx`) 
 ### Route Files
 
 - `routes/api.php` — Auth routes (login, logout, refresh, me)
-- `routes/admin.php` — Admin CRUD routes, all under `/api/admin`, require `auth:api` + `permission:xxx`
+- `routes/system.php` — System CRUD routes, all under `/api/system`, require `auth:api` + `permission:xxx`
 - User module intentionally has no `store`/`destroy` endpoints — users are created via seeder/CLI and disabled via `is_active` rather than deleted.
 
 ### Testing

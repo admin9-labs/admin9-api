@@ -3,28 +3,51 @@
 namespace Database\Seeders;
 
 use App\Enums\Role as RoleEnum;
+use App\Models\Menu;
+use App\Models\Role;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 
 class RoleSeeder extends Seeder
 {
     public function run(): void
     {
-        // Super Admin - 拥有所有权限
-        $superAdmin = Role::findOrCreate(RoleEnum::SuperAdmin->value, 'api');
-        $superAdmin->syncPermissions(Permission::where('guard_name', 'api')->get());
+        // Clear cache to ensure syncPermissions can find permissions created by Menu::saved event
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Admin
+        // Super Admin - Has all menus / permissions
+        $superAdmin = Role::findOrCreate(RoleEnum::SuperAdmin->value, 'api');
+        $superAdmin->update(['locale' => RoleEnum::SuperAdmin->locale()]);
+        $allMenuIds = Menu::pluck('id')->toArray();
+        $superAdmin->menus()->sync($allMenuIds);
+        
+        $superAdminPermissions = Menu::whereIn('id', $allMenuIds)->where('type', Menu::TYPE_BUTTON)->whereNotNull('permission')->pluck('permission')->toArray();
+        $superAdmin->syncPermissions($superAdminPermissions);
+
+        // Admin - Standard permissions
         $admin = Role::findOrCreate(RoleEnum::Admin->value, 'api');
-        $admin->syncPermissions([
+        $admin->update(['locale' => RoleEnum::Admin->locale()]);
+        
+        $adminMenuIds = Menu::whereIn('name', [
+            'Dashboard', 'DashboardWorkplace',
+            'User', 'UserInfo', 'UserAuthentication',
+            'System', 'SystemUser', 'SystemRole', 'SystemMenu', 'SystemDict', 'SystemLog',
             'users.read', 'users.update', 'users.toggleStatus', 'users.resetPassword',
-            'roles.read',
-            'permissions.read',
-        ]);
+            'roles.read', 'menus.read', 'dictTypes.read', 'dictItems.read', 'auditLogs.read',
+        ])->pluck('id')->toArray();
+
+        $admin->menus()->sync($adminMenuIds);
+        
+        $adminPermissions = Menu::whereIn('id', $adminMenuIds)->where('type', Menu::TYPE_BUTTON)->whereNotNull('permission')->pluck('permission')->toArray();
+        $admin->syncPermissions($adminPermissions);
 
         // User
-        $user = Role::findOrCreate(RoleEnum::User->value, 'api');
-        $user->syncPermissions([]);
+        $userRole = Role::findOrCreate(RoleEnum::User->value, 'api');
+        $userRole->update(['locale' => RoleEnum::User->locale()]);
+        $userMenuIds = Menu::whereIn('name', [
+            'Dashboard', 'DashboardWorkplace',
+            'User', 'UserInfo', 'UserAuthentication'
+        ])->pluck('id')->toArray();
+        $userRole->menus()->sync($userMenuIds);
+        $userRole->syncPermissions([]);
     }
 }

@@ -4,12 +4,10 @@ namespace Database\Seeders;
 
 use App\Enums\Role;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
 
     /**
      * Seed the application's database.
@@ -21,8 +19,11 @@ class DatabaseSeeder extends Seeder
             return;
         }
 
+        // Reset cached roles and permissions
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
         $this->call([
-            PermissionSeeder::class,
+            MenuSeeder::class,
             RoleSeeder::class,
         ]);
 

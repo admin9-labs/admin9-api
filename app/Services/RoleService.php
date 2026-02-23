@@ -3,12 +3,12 @@
 namespace App\Services;
 
 use App\Enums\Role as RoleEnum;
-use App\Events\AuditRoleChanged;
 use App\Exceptions\BusinessException;
-use Illuminate\Support\Collection;
+use App\Models\Menu;
+use App\Models\Role;
+use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\DB;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 use Throwable;
 
 /**
@@ -20,26 +20,39 @@ class RoleService
      * @throws BusinessException
      * @throws Throwable
      */
-    public function createRole(string $name, array $permissionIds = []): Role
+    public function createRole(string $name, array $menuIds = [], ?string $locale = null): Role
     {
         if ($name === RoleEnum::SuperAdmin->value) {
             throw new BusinessException('Cannot create role with reserved name: '.$name, 403);
         }
 
-        return DB::transaction(function () use ($name, $permissionIds) {
-            $role = Role::create(['name' => $name, 'guard_name' => 'api']);
+        $this->validateMenuIds($menuIds);
 
-            $permissions = $this->resolvePermissions($permissionIds);
-            if ($permissions->isNotEmpty()) {
-                $role->syncPermissions($permissions);
+        return DB::transaction(function () use ($name, $menuIds, $locale) {
+            $role = new Role(['name' => $name, 'guard_name' => 'api', 'locale' => $locale]);
+            $role->disableLogging();
+            try {
+                $role->save();
+            } finally {
+                $role->enableLogging();
             }
 
-            $role->load('permissions:id,name');
+            if (! empty($menuIds)) {
+                $role->menus()->sync($menuIds);
+                $this->syncSpatiePermissions($role, $menuIds);
+            }
 
-            DB::afterCommit(fn () => AuditRoleChanged::dispatch('created', auth()->id(), [
-                'role_id' => $role->id,
-                'name' => $name,
-            ]));
+            $role->load('menus');
+
+            DB::afterCommit(fn () => activity('role')
+                ->performedOn($role)
+                ->causedBy(auth()->user())
+                ->event('created_with_menus')
+                ->withProperties(array_filter([
+                    'menu_ids' => $menuIds,
+                    'ip' => Context::get('ip'),
+                ], fn ($v) => $v !== null))
+                ->log('created_with_menus'));
 
             return $role;
         });
@@ -49,29 +62,39 @@ class RoleService
      * @throws BusinessException
      * @throws Throwable
      */
-    public function updateRole(Role $role, string $name, ?array $permissionIds = null): Role
+    public function updateRole(Role $role, string $name, ?array $menuIds = null, ?string $locale = null): Role
     {
         if ($role->name === RoleEnum::SuperAdmin->value) {
             throw new BusinessException('Cannot modify super-admin role', 403);
         }
 
-        if ($name === RoleEnum::SuperAdmin->value) {
+        if ($name === RoleEnum::SuperAdmin->value && $role->name !== RoleEnum::SuperAdmin->value) {
             throw new BusinessException('Cannot use reserved role name: '.$name, 403);
         }
 
-        return DB::transaction(function () use ($role, $name, $permissionIds) {
-            $role->update(['name' => $name]);
+        if ($menuIds !== null) {
+            $this->validateMenuIds($menuIds);
+        }
 
-            if ($permissionIds !== null) {
-                $role->syncPermissions($this->resolvePermissions($permissionIds));
+        return DB::transaction(function () use ($role, $name, $menuIds, $locale) {
+            $role->update(['name' => $name, 'locale' => $locale]);
+
+            if ($menuIds !== null) {
+                $role->menus()->sync($menuIds);
+                $this->syncSpatiePermissions($role, $menuIds);
+
+                DB::afterCommit(fn () => activity('role')
+                    ->performedOn($role)
+                    ->causedBy(auth()->user())
+                    ->event('menus_synced')
+                    ->withProperties(array_filter([
+                        'menu_ids' => $menuIds,
+                        'ip' => Context::get('ip'),
+                    ], fn ($v) => $v !== null))
+                    ->log('menus_synced'));
             }
 
-            $role->load('permissions:id,name');
-
-            DB::afterCommit(fn () => AuditRoleChanged::dispatch('updated', auth()->id(), [
-                'role_id' => $role->id,
-                'name' => $name,
-            ]));
+            $role->load('menus');
 
             return $role;
         });
@@ -94,37 +117,68 @@ class RoleService
                 throw new BusinessException('Cannot delete role that has users assigned. Remove users from this role first', 403);
             }
 
-            $roleId = $role->id;
             $roleName = $role->name;
+            $roleId = $role->id;
 
-            $role->delete();
+            // Clear relationships
+            $role->menus()->detach();
+            $role->syncPermissions([]);
 
-            DB::afterCommit(fn () => AuditRoleChanged::dispatch('deleted', auth()->id(), [
-                'role_id' => $roleId,
-                'name' => $roleName,
-            ]));
+            $role->disableLogging();
+            try {
+                $role->delete();
+            } finally {
+                $role->enableLogging();
+            }
+
+            DB::afterCommit(fn () => activity('role')
+                ->causedBy(auth()->user())
+                ->event('deleted')
+                ->withProperties(array_filter([
+                    'role_id' => $roleId,
+                    'role_name' => $roleName,
+                    'ip' => Context::get('ip'),
+                ], fn ($v) => $v !== null))
+                ->log('deleted'));
         });
     }
 
     /**
+     * Sync Spatie permissions based on the provided menu IDs.
+     */
+    private function syncSpatiePermissions(Role $role, array $menuIds): void
+    {
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+
+        if (empty($menuIds)) {
+            $role->syncPermissions([]);
+
+            return;
+        }
+
+        $permissionsToSync = Menu::whereIn('id', $menuIds)
+            ->where('type', Menu::TYPE_BUTTON)
+            ->whereNotNull('permission')
+            ->pluck('permission')
+            ->toArray();
+
+        $role->syncPermissions($permissionsToSync);
+    }
+
+    /**
+     * Validate that all menu IDs exist.
+     *
      * @throws BusinessException
      */
-    private function resolvePermissions(array $permissionIds): Collection
+    private function validateMenuIds(array $menuIds): void
     {
-        if (empty($permissionIds)) {
-            return collect();
+        if (empty($menuIds)) {
+            return;
         }
 
-        $permissionIds = array_values(array_unique($permissionIds));
-
-        $permissions = Permission::whereIn('id', $permissionIds)
-            ->where('guard_name', 'api')
-            ->get();
-
-        if ($permissions->count() !== count($permissionIds)) {
-            throw new BusinessException('Invalid permission IDs', 422);
+        $count = Menu::whereIn('id', $menuIds)->count();
+        if ($count !== count(array_unique($menuIds))) {
+            throw new BusinessException('Invalid menu IDs', 422);
         }
-
-        return $permissions;
     }
 }

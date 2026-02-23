@@ -11,14 +11,16 @@
         "laravel/tinker": "^2.10.1",
         "mitoop/laravel-api-response": "^7.5",
         "mitoop/laravel-efficient-form-request": "^1.0",
-        "mitoop/laravel-query-builder": "^2.9",
+        "mitoop/laravel-query-builder": "^2.10",
         "mitoop/laravel-query-logger": "^3.0",
         "php-open-source-saver/jwt-auth": "^2.8",
-        "spatie/laravel-permission": "^6.24"
+        "spatie/laravel-activitylog": "^4.12",
+        "spatie/laravel-permission": "^6.24",
+        "staudenmeir/laravel-adjacency-list": "^1.25"
     },
     "require-dev": {
+        "admin9/laravel-scramble-extensions": "^0.1.0",
         "barryvdh/laravel-ide-helper": "^3.6",
-        "dedoc/scramble": "^0.13.13",
         "fakerphp/faker": "^1.23",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.24",

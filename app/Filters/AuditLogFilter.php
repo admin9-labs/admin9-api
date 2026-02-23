@@ -16,7 +16,7 @@ class AuditLogFilter extends AbstractFilter
     {
         return [
             'id',
-            'log_name',
+            'log_name|in',
             'event',
             'causer_id',
             'description|like' => new Like,

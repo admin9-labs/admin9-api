@@ -54,7 +54,7 @@ class AuditLogTest extends TestCase
         $this->createLog('user', 'created');
         $this->createLog('role', 'updated');
 
-        $response = $this->getJson('/api/system/audit-logs?log_name=user');
+        $response = $this->getJson('/api/system/audit-logs?log_name[]=user');
 
         $this->assertBusinessSuccess($response);
 

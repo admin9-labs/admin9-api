@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
 use Mitoop\Http\Exceptions\Handler;
 use Mitoop\Http\JsonResponderDefault;
 use Mitoop\LaravelQueryLogger\QueryDebugger;
+use Spatie\Activitylog\Models\Activity;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -56,6 +57,18 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::before(function ($user, $ability) {
             return $user->hasRole(Role::SuperAdmin->value) ? true : null;
+        });
+
+        Activity::saving(function (Activity $activity) {
+            $extra = array_filter([
+                'ip' => Context::get('ip'),
+                'user_agent' => Context::get('user_agent'),
+            ], fn ($v) => $v !== null);
+
+            if (! empty($extra)) {
+                $props = $activity->properties ?? collect();
+                $activity->properties = $props->merge($extra);
+            }
         });
     }
 }

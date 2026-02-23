@@ -3,13 +3,11 @@
 namespace Tests\Unit\Services;
 
 use App\Enums\Role as RoleEnum;
-use App\Events\AuditRoleChanged;
 use App\Exceptions\BusinessException;
+use App\Models\Menu;
+use App\Models\Role;
 use App\Models\User;
 use App\Services\RoleService;
-use Illuminate\Support\Facades\Event;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class RoleServiceTest extends TestCase
@@ -27,22 +25,23 @@ class RoleServiceTest extends TestCase
 
     public function test_create_role_without_permissions(): void
     {
-        Event::fake([AuditRoleChanged::class]);
+        $role = $this->service->createRole('editor', [], 'roles.editor');
 
-        $role = $this->service->createRole('editor');
-
-        $this->assertDatabaseHas('roles', ['name' => 'editor', 'guard_name' => 'api']);
+        $this->assertDatabaseHas('roles', ['name' => 'editor', 'guard_name' => 'api', 'locale' => 'roles.editor']);
         $this->assertTrue($role->permissions->isEmpty());
-        Event::assertDispatched(AuditRoleChanged::class, fn ($e) => $e->action === 'created');
     }
 
-    public function test_create_role_with_permissions(): void
+    public function test_create_role_with_menus(): void
     {
-        $perm = Permission::findOrCreate('users.read', 'api');
+        $menu = Menu::factory()->create([
+            'type' => Menu::TYPE_BUTTON,
+            'permission' => 'users.read',
+        ]);
 
-        $role = $this->service->createRole('viewer', [$perm->id]);
+        $role = $this->service->createRole('viewer', [$menu->id]);
 
         $this->assertTrue($role->hasPermissionTo('users.read'));
+        $this->assertDatabaseHas('activity_log', ['log_name' => 'role', 'event' => 'created_with_menus']);
     }
 
     public function test_create_role_rejects_super_admin_name(): void
@@ -53,52 +52,58 @@ class RoleServiceTest extends TestCase
         $this->service->createRole(RoleEnum::SuperAdmin->value);
     }
 
-    public function test_create_role_rejects_invalid_permission_ids(): void
+    public function test_create_role_rejects_invalid_menu_ids(): void
     {
         $this->expectException(BusinessException::class);
-        $this->expectExceptionMessage('Invalid permission IDs');
+        $this->expectExceptionMessage('Invalid menu IDs');
 
         $this->service->createRole('editor', [99999]);
     }
 
-    public function test_create_role_deduplicates_permission_ids(): void
+    public function test_create_role_deduplicates_menu_ids(): void
     {
-        $perm = Permission::findOrCreate('users.read', 'api');
+        $menu = Menu::factory()->create();
 
-        $role = $this->service->createRole('viewer', [$perm->id, $perm->id]);
+        $role = $this->service->createRole('viewer', [$menu->id, $menu->id]);
 
-        $this->assertCount(1, $role->permissions);
+        $this->assertCount(1, $role->menus);
     }
 
     // ---- updateRole ----
 
     public function test_update_role_name(): void
     {
-        Event::fake([AuditRoleChanged::class]);
-
         $role = Role::findOrCreate('editor', 'api');
 
-        $updated = $this->service->updateRole($role, 'senior-editor');
+        $updated = $this->service->updateRole($role, 'senior-editor', null, 'roles.seniorEditor');
 
         $this->assertEquals('senior-editor', $updated->name);
-        Event::assertDispatched(AuditRoleChanged::class, fn ($e) => $e->action === 'updated');
+        $this->assertEquals('roles.seniorEditor', $updated->locale);
     }
 
-    public function test_update_role_permissions(): void
+    public function test_update_role_menus(): void
     {
         $role = Role::findOrCreate('editor', 'api');
-        $perm = Permission::findOrCreate('users.read', 'api');
+        $menu = Menu::factory()->create([
+            'type' => Menu::TYPE_BUTTON,
+            'permission' => 'users.read',
+        ]);
 
-        $updated = $this->service->updateRole($role, 'editor', [$perm->id]);
+        $updated = $this->service->updateRole($role, 'editor', [$menu->id]);
 
         $this->assertTrue($updated->hasPermissionTo('users.read'));
+        $this->assertDatabaseHas('activity_log', ['log_name' => 'role', 'event' => 'menus_synced']);
     }
 
-    public function test_update_role_skips_permissions_when_null(): void
+    public function test_update_role_skips_menus_when_null(): void
     {
-        $perm = Permission::findOrCreate('users.read', 'api');
+        $menu = Menu::factory()->create([
+            'type' => Menu::TYPE_BUTTON,
+            'permission' => 'users.read',
+        ]);
         $role = Role::findOrCreate('editor', 'api');
-        $role->syncPermissions([$perm]);
+        $role->menus()->sync([$menu->id]);
+        $role->syncPermissions(['users.read']);
 
         $updated = $this->service->updateRole($role, 'editor', null);
 
@@ -129,15 +134,13 @@ class RoleServiceTest extends TestCase
 
     public function test_delete_role(): void
     {
-        Event::fake([AuditRoleChanged::class]);
-
         $role = Role::findOrCreate('disposable', 'api');
         $roleId = $role->id;
 
         $this->service->deleteRole($role);
 
         $this->assertDatabaseMissing('roles', ['id' => $roleId]);
-        Event::assertDispatched(AuditRoleChanged::class, fn ($e) => $e->action === 'deleted');
+        $this->assertDatabaseHas('activity_log', ['log_name' => 'role', 'event' => 'deleted']);
     }
 
     public function test_delete_super_admin_role_throws_exception(): void
@@ -160,5 +163,37 @@ class RoleServiceTest extends TestCase
         $this->expectExceptionMessage('Cannot delete role that has users assigned');
 
         $this->service->deleteRole($role);
+    }
+
+    public function test_create_role_only_produces_manual_audit_log(): void
+    {
+        $menu = Menu::factory()->create([
+            'type' => Menu::TYPE_BUTTON,
+            'permission' => 'audit.read',
+        ]);
+
+        $role = $this->service->createRole('audit-test', [$menu->id]);
+
+        $logs = \Spatie\Activitylog\Models\Activity::where('log_name', 'role')
+            ->where('subject_id', $role->id)
+            ->get();
+
+        $this->assertCount(1, $logs);
+        $this->assertEquals('created_with_menus', $logs->first()->event);
+    }
+
+    public function test_delete_role_only_produces_manual_audit_log(): void
+    {
+        $role = Role::findOrCreate('delete-audit', 'api');
+        $roleId = $role->id;
+
+        $this->service->deleteRole($role);
+
+        $logs = \Spatie\Activitylog\Models\Activity::where('log_name', 'role')
+            ->where('properties->role_id', $roleId)
+            ->get();
+
+        $this->assertCount(1, $logs);
+        $this->assertEquals('deleted', $logs->first()->event);
     }
 }

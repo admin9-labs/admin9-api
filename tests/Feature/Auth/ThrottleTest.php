@@ -29,10 +29,10 @@ class ThrottleTest extends TestCase
         $this->actingAsUser(['users.read']);
 
         for ($i = 0; $i < 60; $i++) {
-            $this->getJson('/api/admin/users');
+            $this->getJson('/api/system/users');
         }
 
-        $response = $this->getJson('/api/admin/users');
+        $response = $this->getJson('/api/system/users');
 
         $this->assertBusinessError($response, 429);
     }
@@ -44,12 +44,12 @@ class ThrottleTest extends TestCase
         $target = User::factory()->create(['is_active' => true]);
 
         for ($i = 0; $i < 10; $i++) {
-            $this->patchJson("/api/admin/users/{$target->id}/status", [
+            $this->patchJson("/api/system/users/{$target->id}/status", [
                 'is_active' => $i % 2 === 0,
             ]);
         }
 
-        $response = $this->patchJson("/api/admin/users/{$target->id}/status", [
+        $response = $this->patchJson("/api/system/users/{$target->id}/status", [
             'is_active' => true,
         ]);
 

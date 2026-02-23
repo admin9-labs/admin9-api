@@ -3,12 +3,12 @@
 namespace Tests;
 
 use App\Enums\Role as RoleEnum;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Testing\TestResponse;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -45,8 +45,8 @@ abstract class TestCase extends BaseTestCase
     {
         $user = User::factory()->create(['is_active' => true]);
 
-        // 运行 seeder 创建权限和角色
-        $this->seed(\Database\Seeders\PermissionSeeder::class);
+        // 运行 seeder 创建权限、菜单和角色
+        $this->seed(\Database\Seeders\MenuSeeder::class);
         $this->seed(\Database\Seeders\RoleSeeder::class);
 
         // 确保使用 api guard

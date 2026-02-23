@@ -3,11 +3,9 @@
 namespace Tests\Unit\Services;
 
 use App\Enums\Role as RoleEnum;
-use App\Events\AuditUserChanged;
 use App\Exceptions\BusinessException;
 use App\Models\User;
 use App\Services\UserService;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -56,8 +54,6 @@ class UserServiceTest extends TestCase
 
     public function test_update_user_basic_info(): void
     {
-        Event::fake([AuditUserChanged::class]);
-
         $user = User::factory()->create(['is_active' => true]);
 
         $updated = $this->service->updateUser($user, [
@@ -67,23 +63,19 @@ class UserServiceTest extends TestCase
 
         $this->assertEquals('New Name', $updated->name);
         $this->assertEquals('new@example.com', $updated->email);
-        Event::assertDispatched(AuditUserChanged::class, fn ($e) => $e->action === 'info_updated'
-            && in_array('name', $e->metadata['changed_fields'])
-            && in_array('email', $e->metadata['changed_fields']));
     }
 
-    public function test_update_user_same_info_does_not_dispatch_audit(): void
+    public function test_update_user_same_info_no_changes(): void
     {
-        Event::fake([AuditUserChanged::class]);
-
         $user = User::factory()->create(['is_active' => true]);
 
-        $this->service->updateUser($user, [
+        $updated = $this->service->updateUser($user, [
             'name' => $user->name,
             'email' => $user->email,
         ]);
 
-        Event::assertNotDispatched(AuditUserChanged::class);
+        $this->assertEquals($user->name, $updated->name);
+        $this->assertEquals($user->email, $updated->email);
     }
 
     public function test_update_user_only_picks_name_and_email(): void
@@ -103,8 +95,6 @@ class UserServiceTest extends TestCase
 
     public function test_update_user_with_role_sync(): void
     {
-        Event::fake([AuditUserChanged::class]);
-
         $user = User::factory()->create(['is_active' => true]);
         $role = Role::findOrCreate('editor', 'api');
 
@@ -114,7 +104,11 @@ class UserServiceTest extends TestCase
         ], [$role->id]);
 
         $this->assertTrue($updated->hasRole('editor'));
-        Event::assertDispatched(AuditUserChanged::class, fn ($e) => $e->action === 'roles_synced');
+        $this->assertDatabaseHas('activity_log', [
+            'log_name' => 'user',
+            'event' => 'roles_synced',
+            'subject_id' => $user->id,
+        ]);
     }
 
     public function test_update_super_admin_throws_exception(): void
@@ -159,27 +153,23 @@ class UserServiceTest extends TestCase
 
     public function test_toggle_status_disables_user(): void
     {
-        Event::fake([AuditUserChanged::class]);
-
         $user = User::factory()->create(['is_active' => true]);
         $operator = User::factory()->create();
 
         $updated = $this->service->toggleStatus($user, false, $operator->id);
 
         $this->assertFalse($updated->is_active);
-        Event::assertDispatched(AuditUserChanged::class, fn ($e) => $e->action === 'status_changed');
+        $this->assertDatabaseHas('activity_log', ['log_name' => 'user', 'event' => 'status_toggled']);
     }
 
     public function test_toggle_status_skips_when_unchanged(): void
     {
-        Event::fake([AuditUserChanged::class]);
-
         $user = User::factory()->create(['is_active' => true]);
         $operator = User::factory()->create();
 
-        $this->service->toggleStatus($user, true, $operator->id);
+        $result = $this->service->toggleStatus($user, true, $operator->id);
 
-        Event::assertNotDispatched(AuditUserChanged::class);
+        $this->assertTrue($result->is_active);
     }
 
     public function test_toggle_status_cannot_disable_own_account(): void
@@ -217,18 +207,22 @@ class UserServiceTest extends TestCase
 
     // ---- resetPassword ----
 
-    public function test_reset_password_returns_new_password(): void
+    public function test_reset_password_changes_password_and_sends_notification(): void
     {
-        Event::fake([AuditUserChanged::class]);
+        \Illuminate\Support\Facades\Notification::fake();
 
         $user = User::factory()->create(['is_active' => true]);
+        $oldPasswordHash = $user->password;
 
-        $newPassword = $this->service->resetPassword($user);
+        $this->service->resetPassword($user);
 
-        $this->assertIsString($newPassword);
-        $this->assertEquals(16, strlen($newPassword));
-        $this->assertTrue(Hash::check($newPassword, $user->fresh()->password));
-        Event::assertDispatched(AuditUserChanged::class, fn ($e) => $e->action === 'password_reset');
+        $this->assertNotEquals($oldPasswordHash, $user->fresh()->password);
+        $this->assertDatabaseHas('activity_log', [
+            'log_name' => 'user',
+            'event' => 'password_reset',
+            'subject_id' => $user->id,
+        ]);
+        \Illuminate\Support\Facades\Notification::assertSentTo($user, \App\Notifications\PasswordResetNotification::class);
     }
 
     public function test_reset_password_rejects_super_admin(): void
@@ -240,5 +234,21 @@ class UserServiceTest extends TestCase
         $this->expectExceptionMessage('Cannot reset super-admin password via API');
 
         $this->service->resetPassword($user);
+    }
+
+    public function test_toggle_status_only_produces_manual_audit_log(): void
+    {
+        $user = User::factory()->create(['is_active' => true]);
+        $operator = User::factory()->create();
+
+        $this->service->toggleStatus($user, false, $operator->id);
+
+        $logs = \Spatie\Activitylog\Models\Activity::where('subject_id', $user->id)
+            ->where('subject_type', User::class)
+            ->where('log_name', 'user')
+            ->where('event', 'status_toggled')
+            ->get();
+
+        $this->assertCount(1, $logs);
     }
 }

@@ -6,9 +6,10 @@ use App\Enums\Role as RoleEnum;
 use App\Exceptions\BusinessException;
 use App\Models\User;
 use App\Notifications\PasswordResetNotification;
+use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Password;
 use Spatie\Permission\Models\Role as SpatieRole;
 use Throwable;
 
@@ -38,7 +39,6 @@ class UserService
         return DB::transaction(function () use ($user, $data, $roleIds) {
             $isSuperAdmin = $user->hasRole(RoleEnum::SuperAdmin->value);
             $isSelf = auth()->id() === $user->id;
-
             if ($isSuperAdmin && ! $isSelf) {
                 throw new BusinessException('Cannot modify super-admin user', 403);
             }
@@ -148,7 +148,6 @@ class UserService
 
     /**
      * @throws BusinessException
-     * @throws Throwable
      */
     public function resetPassword(User $user): void
     {
@@ -159,19 +158,58 @@ class UserService
             throw new BusinessException('Cannot reset super-admin password via API', 403);
         }
 
-        DB::transaction(function () use ($user) {
-            $password = Str::password(16);
-            $user->update(['password' => $password]);
+        $token = Password::broker()->createToken($user);
 
-            DB::afterCommit(function () use ($user, $password) {
+        $user->notify(new PasswordResetNotification($token, $user->email));
+
+        activity('user')
+            ->performedOn($user)
+            ->causedBy(auth()->user())
+            ->event('password_reset_requested')
+            ->log('Password reset requested');
+    }
+
+    /**
+     * @throws BusinessException
+     */
+    public function completePasswordReset(array $data): void
+    {
+        $user = User::where('email', $data['email'])->first();
+
+        if (! $user) {
+            throw new BusinessException('User not found', 422);
+        }
+
+        if (! $user->is_active) {
+            throw new BusinessException('User account is disabled', 403);
+        }
+
+        $status = Password::broker()->reset(
+            [
+                'email' => $data['email'],
+                'password' => $data['password'],
+                'password_confirmation' => $data['password_confirmation'],
+                'token' => $data['token'],
+            ],
+            function (User $user, string $password) {
+                $user->update(['password' => $password]);
+
                 activity('user')
                     ->performedOn($user)
-                    ->causedBy(auth()->user())
+                    ->causedBy($user)
                     ->event('password_reset')
-                    ->log('User password reset');
+                    ->log('User password reset via token');
+            }
+        );
 
-                $user->notify(new PasswordResetNotification($password));
-            });
-        });
+        if ($status !== PasswordBroker::PASSWORD_RESET) {
+            $message = match ($status) {
+                PasswordBroker::INVALID_TOKEN => 'Invalid or expired reset token',
+                PasswordBroker::INVALID_USER => 'User not found',
+                default => 'Password reset failed',
+            };
+
+            throw new BusinessException($message, 422);
+        }
     }
 }

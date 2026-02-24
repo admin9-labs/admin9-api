@@ -43,7 +43,7 @@ class AuditEventTest extends TestCase
 
         $this->assertDatabaseHas('activity_log', [
             'log_name' => 'user',
-            'event' => 'password_reset',
+            'event' => 'password_reset_requested',
             'subject_id' => $user->id,
         ]);
     }

@@ -5,7 +5,6 @@ namespace Tests\Feature\System;
 use App\Enums\Role as RoleEnum;
 use App\Models\User;
 use App\Notifications\PasswordResetNotification;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -108,7 +107,9 @@ class UserTest extends TestCase
 
         $this->assertBusinessSuccess($response);
 
-        $this->assertFalse(Hash::check('password', $target->fresh()->password));
+        $this->assertDatabaseHas('password_reset_tokens', [
+            'email' => $target->email,
+        ]);
 
         Notification::assertSentTo($target, PasswordResetNotification::class);
     }

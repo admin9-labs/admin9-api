@@ -212,14 +212,15 @@ class UserServiceTest extends TestCase
         \Illuminate\Support\Facades\Notification::fake();
 
         $user = User::factory()->create(['is_active' => true]);
-        $oldPasswordHash = $user->password;
 
         $this->service->resetPassword($user);
 
-        $this->assertNotEquals($oldPasswordHash, $user->fresh()->password);
+        $this->assertDatabaseHas('password_reset_tokens', [
+            'email' => $user->email,
+        ]);
         $this->assertDatabaseHas('activity_log', [
             'log_name' => 'user',
-            'event' => 'password_reset',
+            'event' => 'password_reset_requested',
             'subject_id' => $user->id,
         ]);
         \Illuminate\Support\Facades\Notification::assertSentTo($user, \App\Notifications\PasswordResetNotification::class);

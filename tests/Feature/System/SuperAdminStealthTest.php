@@ -6,7 +6,6 @@ use App\Enums\Role as RoleEnum;
 use App\Models\Role;
 use App\Models\User;
 use App\Notifications\PasswordResetNotification;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
@@ -115,7 +114,9 @@ class SuperAdminStealthTest extends TestCase
 
         $this->assertBusinessSuccess($response);
 
-        $this->assertFalse(Hash::check('password', $superAdmin->fresh()->password));
+        $this->assertDatabaseHas('password_reset_tokens', [
+            'email' => $superAdmin->email,
+        ]);
 
         Notification::assertSentTo($superAdmin, PasswordResetNotification::class);
     }

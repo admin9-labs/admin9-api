@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\HealthController;
+use App\Http\Controllers\Api\PasswordResetController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', HealthController::class)
@@ -22,3 +23,7 @@ Route::prefix('auth')->group(function () {
         ->middleware('throttle:10,1')
         ->name('auth.refresh');
 });
+
+Route::post('password/reset', [PasswordResetController::class, 'reset'])
+    ->middleware('throttle:5,1')
+    ->name('password.reset');

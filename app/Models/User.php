@@ -3,8 +3,10 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\Role as RoleEnum;
 use App\Models\Traits\HasJWT;
 use App\Models\Traits\HasModelDefaults;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -52,6 +54,13 @@ class User extends Authenticatable implements JWTSubject
             'password' => 'hashed',
             'is_active' => 'boolean',
         ];
+    }
+
+    public function scopeWithoutSuperAdmin(Builder $query): Builder
+    {
+        return $query->whereDoesntHave('roles', function (Builder $q) {
+            $q->where('name', RoleEnum::SuperAdmin->value);
+        });
     }
 
     public function getActivitylogOptions(): LogOptions

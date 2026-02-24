@@ -29,6 +29,7 @@ class RoleController extends Controller
     {
         $roles = Role::query()
             ->where('guard_name', 'api')
+            ->withoutSuperAdmin()
             ->filter(RoleFilter::class)
             ->with('menus:id,name,locale')
             ->paginate();

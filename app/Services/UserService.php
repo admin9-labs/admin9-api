@@ -36,8 +36,15 @@ class UserService
     public function updateUser(User $user, array $data, ?array $roleIds = null): User
     {
         return DB::transaction(function () use ($user, $data, $roleIds) {
-            if ($user->hasRole(RoleEnum::SuperAdmin->value)) {
+            $isSuperAdmin = $user->hasRole(RoleEnum::SuperAdmin->value);
+            $isSelf = auth()->id() === $user->id;
+
+            if ($isSuperAdmin && ! $isSelf) {
                 throw new BusinessException('Cannot modify super-admin user', 403);
+            }
+
+            if ($isSuperAdmin && $roleIds !== null) {
+                throw new BusinessException('Cannot modify super-admin user roles', 403);
             }
 
             $changes = collect($data)->only(['name', 'email'])->toArray();
@@ -145,7 +152,10 @@ class UserService
      */
     public function resetPassword(User $user): void
     {
-        if ($user->hasRole(RoleEnum::SuperAdmin->value)) {
+        $isSuperAdmin = $user->hasRole(RoleEnum::SuperAdmin->value);
+        $isSelf = auth()->id() === $user->id;
+
+        if ($isSuperAdmin && ! $isSelf) {
             throw new BusinessException('Cannot reset super-admin password via API', 403);
         }
 

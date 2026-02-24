@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Enums\Role;
+use App\Models\AuditLog;
 use Illuminate\Console\Events\ArtisanStarting;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Database\Eloquent\Model;
@@ -14,7 +15,6 @@ use Illuminate\Support\Str;
 use Mitoop\Http\Exceptions\Handler;
 use Mitoop\Http\JsonResponderDefault;
 use Mitoop\LaravelQueryLogger\QueryDebugger;
-use App\Models\AuditLog;
 
 class AppServiceProvider extends ServiceProvider
 {

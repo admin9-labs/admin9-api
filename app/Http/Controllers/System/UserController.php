@@ -28,6 +28,7 @@ class UserController extends Controller
     public function index(): JsonResponse
     {
         $users = User::filter(UserFilter::class)
+            ->withoutSuperAdmin()
             ->with('roles:id,name')
             ->paginate();
 

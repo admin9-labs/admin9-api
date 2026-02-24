@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\Role as RoleEnum;
 use App\Models\Traits\HasModelDefaults;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -18,6 +20,11 @@ class Role extends SpatieRole
     public function menus(): BelongsToMany
     {
         return $this->belongsToMany(Menu::class, 'role_menu');
+    }
+
+    public function scopeWithoutSuperAdmin(Builder $query): Builder
+    {
+        return $query->where('name', '!=', RoleEnum::SuperAdmin->value);
     }
 
     public function getActivitylogOptions(): LogOptions

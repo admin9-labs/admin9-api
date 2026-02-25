@@ -93,24 +93,6 @@ class UserServiceTest extends TestCase
         $this->assertTrue(Hash::check('password', $updated->fresh()->password));
     }
 
-    public function test_update_user_with_role_sync(): void
-    {
-        $user = User::factory()->create(['is_active' => true]);
-        $role = Role::findOrCreate('editor', 'api');
-
-        $updated = $this->service->updateUser($user, [
-            'name' => $user->name,
-            'email' => $user->email,
-        ], [$role->id]);
-
-        $this->assertTrue($updated->hasRole('editor'));
-        $this->assertDatabaseHas('activity_log', [
-            'log_name' => 'user',
-            'event' => 'roles_synced',
-            'subject_id' => $user->id,
-        ]);
-    }
-
     public function test_update_super_admin_throws_exception(): void
     {
         $user = User::factory()->create(['is_active' => true]);
@@ -122,6 +104,24 @@ class UserServiceTest extends TestCase
         $this->service->updateUser($user, ['name' => 'Hacked', 'email' => $user->email]);
     }
 
+    // ---- syncRoles ----
+
+    public function test_sync_roles_assigns_roles(): void
+    {
+        $user = User::factory()->create(['is_active' => true]);
+        $role = Role::findOrCreate('editor', 'api');
+
+        $roles = $this->service->syncRoles($user, [$role->id]);
+
+        $this->assertTrue($user->fresh()->hasRole('editor'));
+        $this->assertEquals('editor', $roles->first()->name);
+        $this->assertDatabaseHas('activity_log', [
+            'log_name' => 'user',
+            'event' => 'roles_synced',
+            'subject_id' => $user->id,
+        ]);
+    }
+
     public function test_sync_roles_rejects_super_admin_role(): void
     {
         $user = User::factory()->create(['is_active' => true]);
@@ -130,10 +130,7 @@ class UserServiceTest extends TestCase
         $this->expectException(BusinessException::class);
         $this->expectExceptionMessage('Cannot assign super-admin role');
 
-        $this->service->updateUser($user, [
-            'name' => $user->name,
-            'email' => $user->email,
-        ], [$superAdminRole->id]);
+        $this->service->syncRoles($user, [$superAdminRole->id]);
     }
 
     public function test_sync_roles_rejects_invalid_role_ids(): void
@@ -143,10 +140,19 @@ class UserServiceTest extends TestCase
         $this->expectException(BusinessException::class);
         $this->expectExceptionMessage('Invalid role IDs');
 
-        $this->service->updateUser($user, [
-            'name' => $user->name,
-            'email' => $user->email,
-        ], [99999]);
+        $this->service->syncRoles($user, [99999]);
+    }
+
+    public function test_sync_roles_rejects_super_admin_user(): void
+    {
+        $user = User::factory()->create(['is_active' => true]);
+        $user->assignRole(Role::findOrCreate(RoleEnum::SuperAdmin->value, 'api'));
+        $role = Role::findOrCreate('editor', 'api');
+
+        $this->expectException(BusinessException::class);
+        $this->expectExceptionMessage('Cannot modify super-admin user roles');
+
+        $this->service->syncRoles($user, [$role->id]);
     }
 
     // ---- toggleStatus ----

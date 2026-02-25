@@ -34,42 +34,18 @@ class UserService
     /**
      * @throws Throwable
      */
-    public function updateUser(User $user, array $data, ?array $roleIds = null): User
+    public function updateUser(User $user, array $data): User
     {
-        return DB::transaction(function () use ($user, $data, $roleIds) {
+        return DB::transaction(function () use ($user, $data) {
             $isSuperAdmin = $user->hasRole(RoleEnum::SuperAdmin->value);
             $isSelf = auth()->id() === $user->id;
             if ($isSuperAdmin && ! $isSelf) {
                 throw new BusinessException('Cannot modify super-admin user', 403);
             }
 
-            if ($isSuperAdmin && $roleIds !== null) {
-                throw new BusinessException('Cannot modify super-admin user roles', 403);
-            }
-
             $changes = collect($data)->only(['name', 'email'])->toArray();
 
             $user->update($changes);
-
-            if ($roleIds !== null) {
-                $oldRoles = $user->roles()->pluck('name')->all();
-                $oldRoleIds = $user->roles()->pluck('id')->sort()->values()->all();
-                $newRoleIds = collect($roleIds)->sort()->values()->all();
-
-                if ($oldRoleIds !== $newRoleIds) {
-                    $roles = $this->syncRoles($user, $roleIds);
-
-                    DB::afterCommit(fn () => activity('user')
-                        ->performedOn($user)
-                        ->causedBy(auth()->user())
-                        ->event('roles_synced')
-                        ->withProperties([
-                            'old' => ['roles' => $oldRoles],
-                            'attributes' => ['roles' => $roles->pluck('name')->all()],
-                        ])
-                        ->log('User roles synced'));
-                }
-            }
 
             $user->load('roles:id,name');
 
@@ -80,7 +56,7 @@ class UserService
     /**
      * @throws BusinessException
      */
-    private function syncRoles(User $user, array $roleIds): Collection
+    public function syncRoles(User $user, array $roleIds): Collection
     {
         if ($user->hasRole(RoleEnum::SuperAdmin->value)) {
             throw new BusinessException('Cannot modify super-admin user roles', 403);
@@ -98,7 +74,19 @@ class UserService
             throw new BusinessException('Cannot assign super-admin role', 403);
         }
 
+        $oldRoles = $user->roles()->pluck('name')->all();
+
         $user->syncRoles($roles);
+
+        activity('user')
+            ->performedOn($user)
+            ->causedBy(auth()->user())
+            ->event('roles_synced')
+            ->withProperties([
+                'old' => ['roles' => $oldRoles],
+                'attributes' => ['roles' => $roles->pluck('name')->all()],
+            ])
+            ->log('User roles synced');
 
         return $roles;
     }

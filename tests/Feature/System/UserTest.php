@@ -126,23 +126,50 @@ class UserTest extends TestCase
         $this->assertBusinessError($response, 403);
     }
 
-    public function test_cannot_sync_super_admin_role(): void
+    public function test_admin_can_assign_roles_to_user(): void
+    {
+        $this->actingAsUser(['users.assignRoles']);
+
+        $target = User::factory()->create(['is_active' => true]);
+        $role = Role::findOrCreate('editor', 'api');
+
+        $response = $this->putJson("/api/system/users/{$target->id}/assign-roles", [
+            'role_ids' => [$role->id],
+        ]);
+
+        $this->assertBusinessSuccess($response);
+        $this->assertTrue($target->fresh()->hasRole('editor'));
+    }
+
+    public function test_assign_roles_requires_permission(): void
+    {
+        $this->actingAsUser([]);
+
+        $target = User::factory()->create(['is_active' => true]);
+        $role = Role::findOrCreate('editor', 'api');
+
+        $response = $this->putJson("/api/system/users/{$target->id}/assign-roles", [
+            'role_ids' => [$role->id],
+        ]);
+
+        $this->assertBusinessError($response, 403);
+    }
+
+    public function test_cannot_assign_super_admin_role(): void
     {
         $this->actingAsSuperAdmin();
 
         $target = User::factory()->create(['is_active' => true]);
         $superAdminRole = Role::findOrCreate(RoleEnum::SuperAdmin->value, 'api');
 
-        $response = $this->putJson("/api/system/users/{$target->id}", [
-            'name' => $target->name,
-            'email' => $target->email,
+        $response = $this->putJson("/api/system/users/{$target->id}/assign-roles", [
             'role_ids' => [$superAdminRole->id],
         ]);
 
         $this->assertBusinessError($response, 403);
     }
 
-    public function test_cannot_modify_super_admin_user_roles(): void
+    public function test_cannot_assign_roles_to_super_admin_user(): void
     {
         $this->actingAsSuperAdmin();
 
@@ -151,13 +178,22 @@ class UserTest extends TestCase
 
         $adminRole = Role::findOrCreate(RoleEnum::Admin->value, 'api');
 
-        $response = $this->putJson("/api/system/users/{$superAdmin->id}", [
-            'name' => $superAdmin->name,
-            'email' => $superAdmin->email,
+        $response = $this->putJson("/api/system/users/{$superAdmin->id}/assign-roles", [
             'role_ids' => [$adminRole->id],
         ]);
 
         $this->assertBusinessError($response, 403);
+    }
+
+    public function test_assign_roles_validates_role_ids_required(): void
+    {
+        $this->actingAsUser(['users.assignRoles']);
+
+        $target = User::factory()->create(['is_active' => true]);
+
+        $response = $this->putJson("/api/system/users/{$target->id}/assign-roles", []);
+
+        $this->assertBusinessError($response, 422);
     }
 
     public function test_user_without_permission_cannot_list_users(): void

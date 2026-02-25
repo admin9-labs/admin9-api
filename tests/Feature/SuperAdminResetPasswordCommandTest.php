@@ -24,13 +24,13 @@ class SuperAdminResetPasswordCommandTest extends TestCase
         $this->createSuperAdmin();
 
         $this->artisan('super-admin:reset-password --email=superadmin@test.dev')
-            ->expectsQuestion('New Password', 'newpassword')
-            ->expectsQuestion('Confirm New Password', 'newpassword')
+            ->expectsQuestion('New Password', 'NewPass1word')
+            ->expectsQuestion('Confirm New Password', 'NewPass1word')
             ->expectsOutput('Password for super admin [superadmin@test.dev] has been reset successfully.')
             ->assertSuccessful();
 
         $user = User::where('email', 'superadmin@test.dev')->first();
-        $this->assertTrue(Hash::check('newpassword', $user->password));
+        $this->assertTrue(Hash::check('NewPass1word', $user->password));
     }
 
     public function test_can_reset_super_admin_password_with_interactive_email(): void
@@ -39,8 +39,8 @@ class SuperAdminResetPasswordCommandTest extends TestCase
 
         $this->artisan('super-admin:reset-password')
             ->expectsQuestion('Email', 'superadmin@test.dev')
-            ->expectsQuestion('New Password', 'newpassword')
-            ->expectsQuestion('Confirm New Password', 'newpassword')
+            ->expectsQuestion('New Password', 'NewPass1word')
+            ->expectsQuestion('Confirm New Password', 'NewPass1word')
             ->expectsOutput('Password for super admin [superadmin@test.dev] has been reset successfully.')
             ->assertSuccessful();
     }
@@ -66,9 +66,28 @@ class SuperAdminResetPasswordCommandTest extends TestCase
         $this->createSuperAdmin();
 
         $this->artisan('super-admin:reset-password --email=superadmin@test.dev')
-            ->expectsQuestion('New Password', 'newpassword')
-            ->expectsQuestion('Confirm New Password', 'different')
+            ->expectsQuestion('New Password', 'NewPass1word')
+            ->expectsQuestion('Confirm New Password', 'Different1pass')
             ->expectsOutput('Passwords do not match.')
+            ->assertFailed();
+    }
+
+    public function test_fails_when_password_is_too_weak(): void
+    {
+        $this->createSuperAdmin();
+
+        $this->artisan('super-admin:reset-password --email=superadmin@test.dev')
+            ->expectsQuestion('New Password', 'weakpass')
+            ->expectsQuestion('Confirm New Password', 'weakpass')
+            ->assertFailed();
+    }
+
+    public function test_aborts_in_production_without_force(): void
+    {
+        $this->app->detectEnvironment(fn () => 'production');
+
+        $this->artisan('super-admin:reset-password --email=superadmin@test.dev')
+            ->expectsConfirmation('Are you sure you want to run this command?', 'no')
             ->assertFailed();
     }
 }

@@ -31,7 +31,7 @@ class RoleSeeder extends Seeder
             'Dashboard', 'DashboardWorkplace',
             'User', 'UserInfo', 'UserAuthentication',
             'System', 'SystemUser', 'SystemRole', 'SystemMenu', 'SystemDict', 'SystemLog',
-            'users.read', 'users.update', 'users.toggleStatus', 'users.resetPassword',
+            'users.read', 'users.update', 'users.assignRoles', 'users.toggleStatus', 'users.resetPassword',
             'roles.read', 'menus.read', 'dictTypes.read', 'dictItems.read', 'auditLogs.read',
         ])->pluck('id')->toArray();
 

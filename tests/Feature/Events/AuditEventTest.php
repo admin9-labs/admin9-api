@@ -20,9 +20,7 @@ class AuditEventTest extends TestCase
         $user = User::factory()->create(['is_active' => true]);
         $role = Role::create(['name' => 'editor', 'guard_name' => 'api']);
 
-        $this->putJson("/api/system/users/{$user->id}", [
-            'name' => $user->name,
-            'email' => $user->email,
+        $this->putJson("/api/system/users/{$user->id}/assign-roles", [
             'role_ids' => [$role->id],
         ]);
 

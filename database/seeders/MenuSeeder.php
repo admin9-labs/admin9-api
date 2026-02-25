@@ -100,6 +100,7 @@ class MenuSeeder extends Seeder
 
         Menu::updateOrCreate(['name' => 'users.read'], ['parent_id' => $systemUserMenu->id, 'type' => Menu::TYPE_BUTTON, 'permission' => 'users.read', 'locale' => 'system.permissions.read']);
         Menu::updateOrCreate(['name' => 'users.update'], ['parent_id' => $systemUserMenu->id, 'type' => Menu::TYPE_BUTTON, 'permission' => 'users.update', 'locale' => 'system.permissions.update']);
+        Menu::updateOrCreate(['name' => 'users.assignRoles'], ['parent_id' => $systemUserMenu->id, 'type' => Menu::TYPE_BUTTON, 'permission' => 'users.assignRoles', 'locale' => 'system.permissions.assignRoles']);
         Menu::updateOrCreate(['name' => 'users.toggleStatus'], ['parent_id' => $systemUserMenu->id, 'type' => Menu::TYPE_BUTTON, 'permission' => 'users.toggleStatus', 'locale' => 'system.permissions.toggleStatus']);
         Menu::updateOrCreate(['name' => 'users.resetPassword'], ['parent_id' => $systemUserMenu->id, 'type' => Menu::TYPE_BUTTON, 'permission' => 'users.resetPassword', 'locale' => 'system.permissions.resetPassword']);
 

@@ -47,6 +47,13 @@ class TokenTest extends TestCase
             ->postJson('/api/auth/logout');
 
         $this->assertBusinessSuccess($response);
+
+        $this->assertDatabaseHas('activity_log', [
+            'log_name' => 'auth',
+            'event' => 'logout',
+            'causer_id' => $user->id,
+            'description' => 'User logged out',
+        ]);
     }
 
     public function test_unauthenticated_request_returns_error(): void

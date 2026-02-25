@@ -95,9 +95,7 @@ class SuperAdminStealthTest extends TestCase
 
         $adminRole = Role::findOrCreate(RoleEnum::Admin->value, 'api');
 
-        $response = $this->putJson("/api/system/users/{$superAdmin->id}", [
-            'name' => $superAdmin->name,
-            'email' => $superAdmin->email,
+        $response = $this->putJson("/api/system/users/{$superAdmin->id}/assign-roles", [
             'role_ids' => [$adminRole->id],
         ]);
 

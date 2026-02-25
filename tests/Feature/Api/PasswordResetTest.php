@@ -22,12 +22,12 @@ class PasswordResetTest extends TestCase
         $response = $this->postJson('/api/password/reset', [
             'token' => $token,
             'email' => $user->email,
-            'password' => 'newpassword123',
-            'password_confirmation' => 'newpassword123',
+            'password' => 'NewPass1word',
+            'password_confirmation' => 'NewPass1word',
         ]);
 
         $this->assertBusinessSuccess($response);
-        $this->assertTrue(Hash::check('newpassword123', $user->fresh()->password));
+        $this->assertTrue(Hash::check('NewPass1word', $user->fresh()->password));
     }
 
     public function test_invalid_token_returns_error(): void
@@ -37,8 +37,8 @@ class PasswordResetTest extends TestCase
         $response = $this->postJson('/api/password/reset', [
             'token' => 'invalid-token',
             'email' => $user->email,
-            'password' => 'newpassword123',
-            'password_confirmation' => 'newpassword123',
+            'password' => 'NewPass1word',
+            'password_confirmation' => 'NewPass1word',
         ]);
 
         $this->assertBusinessError($response, 422);
@@ -59,8 +59,8 @@ class PasswordResetTest extends TestCase
         $response = $this->postJson('/api/password/reset', [
             'token' => $token,
             'email' => $user->email,
-            'password' => 'newpassword123',
-            'password_confirmation' => 'differentpassword',
+            'password' => 'NewPass1word',
+            'password_confirmation' => 'DifferentPass1',
         ]);
 
         $this->assertBusinessError($response, 422);
@@ -74,15 +74,15 @@ class PasswordResetTest extends TestCase
         $this->postJson('/api/password/reset', [
             'token' => $token,
             'email' => $user->email,
-            'password' => 'newpassword123',
-            'password_confirmation' => 'newpassword123',
+            'password' => 'NewPass1word',
+            'password_confirmation' => 'NewPass1word',
         ]);
 
         $response = $this->postJson('/api/password/reset', [
             'token' => $token,
             'email' => $user->email,
-            'password' => 'anotherpassword1',
-            'password_confirmation' => 'anotherpassword1',
+            'password' => 'AnotherPass1',
+            'password_confirmation' => 'AnotherPass1',
         ]);
 
         $this->assertBusinessError($response, 422);
@@ -96,8 +96,8 @@ class PasswordResetTest extends TestCase
         $response = $this->postJson('/api/password/reset', [
             'token' => $token,
             'email' => $user->email,
-            'password' => 'newpassword123',
-            'password_confirmation' => 'newpassword123',
+            'password' => 'NewPass1word',
+            'password_confirmation' => 'NewPass1word',
         ]);
 
         $this->assertBusinessError($response, 403);
@@ -116,8 +116,23 @@ class PasswordResetTest extends TestCase
         $response = $this->postJson('/api/password/reset', [
             'token' => $token,
             'email' => $user->email,
-            'password' => 'newpassword123',
-            'password_confirmation' => 'newpassword123',
+            'password' => 'NewPass1word',
+            'password_confirmation' => 'NewPass1word',
+        ]);
+
+        $this->assertBusinessError($response, 422);
+    }
+
+    public function test_weak_password_is_rejected(): void
+    {
+        $user = User::factory()->create(['is_active' => true]);
+        $token = $this->createTokenForUser($user);
+
+        $response = $this->postJson('/api/password/reset', [
+            'token' => $token,
+            'email' => $user->email,
+            'password' => 'weakpass',
+            'password_confirmation' => 'weakpass',
         ]);
 
         $this->assertBusinessError($response, 422);

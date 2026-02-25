@@ -32,4 +32,13 @@ class AuthService
             ->event('login_success')
             ->log('Login successful');
     }
+
+    public function logLogout(User $user): void
+    {
+        activity('auth')
+            ->performedOn($user)
+            ->causedBy($user)
+            ->event('logout')
+            ->log('User logged out');
+    }
 }

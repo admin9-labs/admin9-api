@@ -36,6 +36,9 @@ Route::prefix('system')->as('system.')->middleware(['auth:api', 'throttle:60,1']
             Route::patch('users/{user}/status', [UserController::class, 'toggleStatus'])->name('users.toggleStatus');
         });
     });
+    Route::middleware('permission:users.assignRoles')->group(function () {
+        Route::put('users/{user}/assign-roles', [UserController::class, 'assignRoles'])->name('users.assignRoles');
+    });
     Route::middleware('permission:users.resetPassword')->group(function () {
         Route::middleware('throttle:10,1')->group(function () {
             Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.resetPassword');

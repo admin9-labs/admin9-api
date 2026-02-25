@@ -56,10 +56,22 @@ class UserController extends Controller
         $user = $this->userService->updateUser(
             $user,
             $request->validated(),
-            $request->has('role_ids') ? $request->validated('role_ids', []) : null,
         );
 
         return $this->success($user);
+    }
+
+    /**
+     * Assign roles to user.
+     *
+     * @throws BusinessException
+     * @throws Throwable
+     */
+    public function assignRoles(UserRequest $request, User $user): JsonResponse
+    {
+        $this->userService->syncRoles($user, $request->validated()['role_ids']);
+
+        return $this->success();
     }
 
     /**

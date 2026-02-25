@@ -15,8 +15,14 @@ class UserRequest extends EfficientSceneFormRequest
         return [
             'name' => ['bail', 'required', 'string', 'min:2', 'max:255', 'regex:/^[^<>]*$/'],
             'email' => ['bail', 'required', 'string', 'email:filter', 'max:255', Rule::unique('users', 'email')->ignore($this->route('user'))],
-            'role_ids' => ['nullable', 'array', 'distinct'],
-            'role_ids.*' => ['integer', Rule::exists('roles', 'id')->where('guard_name', 'api')],
+        ];
+    }
+
+    public function assignRolesRules(): array
+    {
+        return [
+            'role_ids' => ['required', 'array'],
+            'role_ids.*' => ['integer', 'distinct', Rule::exists('roles', 'id')->where('guard_name', 'api')],
         ];
     }
 

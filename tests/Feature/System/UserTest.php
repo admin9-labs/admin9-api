@@ -5,6 +5,9 @@ namespace Tests\Feature\System;
 use App\Enums\Role as RoleEnum;
 use App\Models\User;
 use App\Notifications\PasswordResetNotification;
+use App\Notifications\UserProfileUpdatedNotification;
+use App\Notifications\UserRolesChangedNotification;
+use App\Notifications\UserStatusChangedNotification;
 use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -41,6 +44,8 @@ class UserTest extends TestCase
 
     public function test_admin_can_update_user(): void
     {
+        Notification::fake();
+
         $this->actingAsUser(['users.update']);
 
         $target = User::factory()->create(['is_active' => true]);
@@ -52,10 +57,14 @@ class UserTest extends TestCase
 
         $this->assertBusinessSuccess($response)
             ->assertJsonPath('data.name', 'Updated Name');
+
+        Notification::assertSentTo($target, UserProfileUpdatedNotification::class);
     }
 
     public function test_admin_can_toggle_user_status(): void
     {
+        Notification::fake();
+
         $this->actingAsUser(['users.toggleStatus']);
 
         $target = User::factory()->create(['is_active' => true]);
@@ -68,6 +77,8 @@ class UserTest extends TestCase
             ->assertJsonPath('data.is_active', false);
 
         $this->assertFalse($target->fresh()->is_active);
+
+        Notification::assertSentTo($target, UserStatusChangedNotification::class);
     }
 
     public function test_cannot_disable_own_account(): void
@@ -128,6 +139,8 @@ class UserTest extends TestCase
 
     public function test_admin_can_assign_roles_to_user(): void
     {
+        Notification::fake();
+
         $this->actingAsUser(['users.assignRoles']);
 
         $target = User::factory()->create(['is_active' => true]);
@@ -139,6 +152,8 @@ class UserTest extends TestCase
 
         $this->assertBusinessSuccess($response);
         $this->assertTrue($target->fresh()->hasRole('editor'));
+
+        Notification::assertSentTo($target, UserRolesChangedNotification::class);
     }
 
     public function test_assign_roles_requires_permission(): void

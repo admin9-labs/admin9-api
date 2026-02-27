@@ -3,7 +3,9 @@
 namespace Tests\Feature\Api;
 
 use App\Models\User;
+use App\Notifications\PasswordResetCompletedNotification;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
 use Tests\TestCase;
 
@@ -16,6 +18,8 @@ class PasswordResetTest extends TestCase
 
     public function test_valid_token_resets_password(): void
     {
+        Notification::fake();
+
         $user = User::factory()->create(['is_active' => true]);
         $token = $this->createTokenForUser($user);
 
@@ -28,6 +32,8 @@ class PasswordResetTest extends TestCase
 
         $this->assertBusinessSuccess($response);
         $this->assertTrue(Hash::check('NewPass1word', $user->fresh()->password));
+
+        Notification::assertSentTo($user, PasswordResetCompletedNotification::class);
     }
 
     public function test_invalid_token_returns_error(): void

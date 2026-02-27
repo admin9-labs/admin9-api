@@ -22,7 +22,7 @@ Clone it, seed it, build your admin backend on top of it.
 - **Query Filtering** — Reusable filter classes via `mitoop/laravel-query-builder`
 - **Scene-Based Validation** — `{scene}Rules()` pattern for multi-scene form requests
 - **API Documentation** — Auto-generated via Scramble, visit `/docs/api` (to customize: `php artisan vendor:publish --tag=scramble`)
-- **Test Suite** — 252 tests / 744 assertions, in-memory SQLite
+- **Test Suite** — In-memory SQLite, full coverage
 
 ## Tech Stack
 
@@ -72,7 +72,6 @@ app/
 │   └── System/         # User, Role, Menu CRUD
 ├── Services/           # Business logic layer
 ├── Filters/            # Query filter classes
-├── Events/             # Audit events
 ├── Models/
 └── Http/Middleware/     # AddContext, EnsureUserIsActive
 

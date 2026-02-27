@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-admin9-api-core is a Laravel 12 REST API backend with JWT authentication and RBAC (Role-Based Access Control). PHP 8.2, Spatie Permission, and a service-layer architecture.
+admin9-api is a Laravel 12 REST API backend with JWT authentication and RBAC (Role-Based Access Control). PHP 8.2, Spatie Permission, and a service-layer architecture.
 
 ## Commands
 

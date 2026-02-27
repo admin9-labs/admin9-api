@@ -25,4 +25,20 @@ class NotificationService
     {
         return $user->unreadNotifications()->update(['read_at' => now()]);
     }
+
+    public function delete(User $user, string $notificationId): void
+    {
+        $notification = $user->notifications()->find($notificationId);
+
+        if (! $notification) {
+            throw new BusinessException('Notification not found', 404);
+        }
+
+        $notification->delete();
+    }
+
+    public function unreadCount(User $user): int
+    {
+        return $user->unreadNotifications()->count();
+    }
 }

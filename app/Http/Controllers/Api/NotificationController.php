@@ -49,4 +49,24 @@ class NotificationController extends Controller
 
         return $this->success(['updated' => $count]);
     }
+
+    /**
+     * Delete a single notification.
+     */
+    public function destroy(Request $request, string $notification): JsonResponse
+    {
+        $this->notificationService->delete($request->user(), $notification);
+
+        return $this->success(message: 'Notification deleted');
+    }
+
+    /**
+     * Get unread notification count.
+     */
+    public function unreadCount(Request $request): JsonResponse
+    {
+        $count = $this->notificationService->unreadCount($request->user());
+
+        return $this->success(['count' => $count]);
+    }
 }

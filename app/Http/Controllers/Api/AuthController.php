@@ -12,6 +12,7 @@ use Illuminate\Container\Attributes\Auth;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use PHPOpenSourceSaver\JWTAuth\Exceptions\JWTException;
 use PHPOpenSourceSaver\JWTAuth\Exceptions\TokenBlacklistedException;
 
@@ -60,11 +61,11 @@ class AuthController extends Controller
      */
     public function me(Request $request): JsonResponse
     {
-        $user = $request->user();
+        $user = $request->user()->fresh();
         $user->loadMissing('roles:id,name');
 
         return $this->success([
-            ...$user->only(['id', 'name', 'email']),
+            ...$user->only(['id', 'name', 'email', 'avatar']),
             'roles' => $user->roles->pluck('name'),
         ]);
     }
@@ -103,6 +104,35 @@ class AuthController extends Controller
         }
 
         return $this->success($user->only(['id', 'name', 'email']));
+    }
+
+    /**
+     * Update current user avatar.
+     */
+    public function updateAvatar(Request $request): JsonResponse
+    {
+        $request->validate([
+            'avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,gif,webp', 'max:2048'],
+        ]);
+
+        $user = $request->user()->fresh();
+
+        // Delete old avatar
+        if ($user->avatar) {
+            Storage::disk('public')->delete($user->avatar);
+        }
+
+        $path = $request->file('avatar')->store('avatars', 'public');
+
+        $user->update(['avatar' => $path]);
+
+        activity('user')
+            ->performedOn($user)
+            ->causedBy($user)
+            ->event('avatar_updated')
+            ->log('User avatar updated');
+
+        return $this->success(['avatar' => $path]);
     }
 
     /**

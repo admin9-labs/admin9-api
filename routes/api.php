@@ -13,6 +13,7 @@ Route::get('/health', HealthController::class)
 Route::middleware('auth:api')->group(function () {
     Route::get('/me', [AuthController::class, 'me'])->name('auth.me');
     Route::patch('/me', [AuthController::class, 'updateProfile'])->name('auth.me.update');
+    Route::post('/me/avatar', [AuthController::class, 'updateAvatar'])->name('auth.me.avatar');
     Route::get('/me/menu', [AuthController::class, 'menu'])->name('auth.me.menu');
     Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
 

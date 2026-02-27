@@ -4,6 +4,12 @@ Production-ready Laravel 12 REST API scaffold with JWT authentication and RBAC.
 
 Clone it, seed it, build your admin backend on top of it.
 
+## Requirements
+
+- PHP 8.2+
+- Composer 2.x
+- SQLite (default) or MySQL 8.0+
+
 ## Features
 
 - **JWT Authentication** — Login, logout, token refresh, user profile (`php-open-source-saver/jwt-auth`)
@@ -15,8 +21,8 @@ Clone it, seed it, build your admin backend on top of it.
 - **Request Tracing** — UUID7 `request_id` on every response and log entry
 - **Query Filtering** — Reusable filter classes via `mitoop/laravel-query-builder`
 - **Scene-Based Validation** — `{scene}Rules()` pattern for multi-scene form requests
-- **API Documentation** — Auto-generated via Scramble
-- **Test Suite** — 131 tests / 347 assertions, in-memory SQLite
+- **API Documentation** — Auto-generated via Scramble, visit `/docs/api` (to customize: `php artisan vendor:publish --tag=scramble`)
+- **Test Suite** — 252 tests / 744 assertions, in-memory SQLite
 
 ## Tech Stack
 

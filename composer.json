@@ -3,7 +3,14 @@
     "name": "admin9-labs/admin9-api",
     "type": "project",
     "description": "Admin9 API - Laravel 12 REST API scaffold with JWT auth and RBAC.",
-    "keywords": ["laravel", "framework"],
+    "keywords": ["laravel", "framework", "admin", "api", "jwt", "rbac", "scaffold", "rest-api"],
+    "homepage": "https://github.com/admin9-labs/admin9-api",
+    "authors": [
+        {
+            "name": "Admin9 Labs",
+            "email": "admin9@admin9.dev"
+        }
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.2",

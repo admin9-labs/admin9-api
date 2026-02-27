@@ -59,19 +59,6 @@ class MenuSeeder extends Seeder
             ]
         );
 
-        Menu::updateOrCreate(
-            ['name' => 'UserAuthentication'],
-            [
-                'parent_id' => $userDir->id,
-                'type' => Menu::TYPE_MENU,
-                'path' => 'authentication',
-                'component' => 'views/user/authentication/index.vue',
-                'locale' => 'menu.user.authentication',
-                'icon' => 'icon-lock',
-                'sort' => 0,
-            ]
-        );
-
         // --- System Module ---
         $systemDir = Menu::updateOrCreate(
             ['name' => 'System'],

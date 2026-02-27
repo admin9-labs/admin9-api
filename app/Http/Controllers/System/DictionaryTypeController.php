@@ -26,9 +26,7 @@ class DictionaryTypeController extends Controller
      */
     public function index(): JsonResponse
     {
-        $types = DictionaryType::query()
-            ->filter(DictionaryTypeFilter::class)
-            ->paginate();
+        $types = $this->dictionaryTypeService->list(DictionaryTypeFilter::class);
 
         return $this->success($types);
     }

@@ -9,6 +9,13 @@ jobs:
   ci:
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: true
+      matrix:
+        php: ['8.2', '8.3', '8.4']
+
+    name: PHP ${{ matrix.php }}
+
     env:
       DB_CONNECTION: sqlite
       DB_DATABASE: ":memory:"
@@ -20,7 +27,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.2"
+          php-version: ${{ matrix.php }}
           extensions: mbstring, xml, sqlite3, pdo_sqlite
           coverage: none
 

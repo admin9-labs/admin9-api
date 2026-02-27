@@ -98,38 +98,13 @@ Route → Middleware (`auth:api` → `EnsureUserIsActive` → `permission:xxx`) 
 - Migration naming: `YYYY_MM_DD_HHMMSS_action_table_description.php`
 - Avoid PHP/MySQL reserved words for model names and column names (e.g., `order`, `group`, `key`, `index`).
 
-### Audit Events
+### Audit Logging
 
-The project uses an event-based audit system for tracking sensitive operations:
+The project uses `spatie/laravel-activitylog` for comprehensive audit logging at two levels:
 
-- **Architecture:** `BaseAuditEvent` (abstract) → `AuditUserChanged` / `AuditRoleChanged` / `AuditLoginAttempted` → `AuditLogSubscriber`
-- **Current behavior:** All audit events are written to file logs via `Log::info()` / `Log::warning()`. This is intentional for the skeleton — sufficient for development and basic production use.
-- **IP tracking:** Audit events obtain the client IP from `Context::get('ip')`, which is set by the `AddContext` middleware. This keeps events decoupled from the HTTP layer and works correctly in CLI/queue contexts (IP will be `null`).
-
-#### Extending Audit Logging for Downstream Projects
-
-When your project needs queryable audit trails (admin dashboard, compliance, etc.), replace or supplement the file-based logging:
-
-**Option A: `spatie/laravel-activitylog` (recommended for most projects)**
-
-```bash
-composer require spatie/laravel-activitylog
-php artisan vendor:publish --provider="Spatie\Activitylog\ActivitylogServiceProvider" --tag="activitylog-migrations"
-php artisan migrate
-```
-
-Then update `AuditLogSubscriber` to write to the activity log:
-
-```php
-public function handleUserChanged(AuditUserChanged $event): void
-{
-    activity('user')
-        ->causedBy($event->userId ? User::find($event->userId) : null)
-        ->withProperties($event->toLogContext())
-        ->log("User {$event->action}");
-}
-```
-
-**Option B: Custom audit table**
-
-Create a migration for an `audit_logs` table and a corresponding model, then update the subscriber to persist events there. Key columns: `action`, `user_id`, `ip`, `metadata` (JSON), `created_at`.
+- **Model-level:** `LogsActivity` trait on User, Menu, Role, DictionaryType, and DictionaryItem for automatic CRUD logging.
+- **Service-level:** Manual `activity('log_name')->event('event_name')->withProperties([...])->log(...)` calls for sensitive operations (role sync, status toggle, password reset, auth events).
+- **AuditLog model:** Extends Spatie's `Activity` model with `HasFilter` and `HasModelDefaults` traits for filtering and pagination.
+- **Context enrichment:** IP, user-agent, and request context are auto-enriched via an `AuditLog::saving` event listener.
+- **Cleanup:** Daily `activitylog:clean` scheduled command removes old entries.
+- **API:** Read-only endpoint for viewing audit logs (requires `auditLogs.read` permission).

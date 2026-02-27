@@ -11,7 +11,7 @@ use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 
 /**
- * Menu CRUD for admin management.
+ * @scaffold — Menu CRUD for admin management.
  */
 #[Group('Menus', weight: 4)]
 class MenuController extends Controller

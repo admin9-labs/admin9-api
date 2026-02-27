@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Exceptions\BusinessException;
 use App\Models\DictionaryItem;
+use App\Services\Traits\DetectsUniqueViolation;
 use Illuminate\Database\QueryException;
 
 /**
@@ -11,6 +12,8 @@ use Illuminate\Database\QueryException;
  */
 class DictionaryItemService
 {
+    use DetectsUniqueViolation;
+
     /**
      * @throws BusinessException
      */
@@ -58,12 +61,5 @@ class DictionaryItemService
                 'old' => ['item_id' => $itemId, 'item_value' => $itemValue, 'dictionary_type_id' => $typeId],
             ])
             ->log('Dictionary item deleted');
-    }
-
-    private function isUniqueConstraintViolation(QueryException $e): bool
-    {
-        $code = (string) $e->errorInfo[0];
-
-        return in_array($code, ['23000', '23505']) || str_contains($e->getMessage(), 'UNIQUE constraint failed');
     }
 }

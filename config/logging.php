@@ -135,10 +135,10 @@ return [
         ],
     ],
 
-    // 查询日志相关配置
+    // Query log configuration
     'query' => [
-        'enabled' => env('ENABLE_QUERY_LOG', false), // 总开关，是否启用 SQL 查询日志
-        'channel' => 'sql', // 日志记录频道
-        'excluded_tables' => ['telescope_'], // 排除表名，支持前缀匹配
+        'enabled' => env('ENABLE_QUERY_LOG', false), // Master switch for SQL query logging
+        'channel' => 'sql', // Log channel
+        'excluded_tables' => ['telescope_'], // Excluded table names, supports prefix matching
     ],
 ];

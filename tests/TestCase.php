@@ -45,11 +45,11 @@ abstract class TestCase extends BaseTestCase
     {
         $user = User::factory()->create(['is_active' => true]);
 
-        // 运行 seeder 创建权限、菜单和角色
+        // Seed permissions, menus, and roles
         $this->seed(\Database\Seeders\MenuSeeder::class);
         $this->seed(\Database\Seeders\RoleSeeder::class);
 
-        // 确保使用 api guard
+        // Ensure we use the api guard
         $superAdminRole = Role::where('name', RoleEnum::SuperAdmin->value)
             ->where('guard_name', 'api')
             ->first();

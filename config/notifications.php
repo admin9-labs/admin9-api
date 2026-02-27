@@ -19,6 +19,10 @@ return [
         'default' => ['mail', 'database'],
 
         'password_reset' => ['mail'],
+        'password_reset_completed' => ['mail', 'database'],
+        'account_status' => ['mail', 'database'],
+        'roles_changed' => ['mail', 'database'],
+        'profile_updated' => ['database'],
     ],
 
 ];

@@ -5,7 +5,11 @@ namespace App\Services;
 use App\Enums\Role as RoleEnum;
 use App\Exceptions\BusinessException;
 use App\Models\User;
+use App\Notifications\PasswordResetCompletedNotification;
 use App\Notifications\PasswordResetNotification;
+use App\Notifications\UserProfileUpdatedNotification;
+use App\Notifications\UserRolesChangedNotification;
+use App\Notifications\UserStatusChangedNotification;
 use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -46,6 +50,10 @@ class UserService
             $changes = collect($data)->only(['name', 'email'])->toArray();
 
             $user->update($changes);
+
+            if ($changes && ! $isSelf) {
+                $user->notify(new UserProfileUpdatedNotification($changes));
+            }
 
             $user->load('roles:id,name');
 
@@ -88,6 +96,9 @@ class UserService
             ])
             ->log('User roles synced');
 
+        $newRoles = $roles->pluck('name')->all();
+        $user->notify(new UserRolesChangedNotification($oldRoles, $newRoles));
+
         return $roles;
     }
 
@@ -127,6 +138,8 @@ class UserService
                     'attributes' => ['is_active' => $isActive],
                 ])
                 ->log($isActive ? 'User account enabled' : 'User account disabled'));
+
+            DB::afterCommit(fn () => $user->notify(new UserStatusChangedNotification($isActive)));
 
             $user->load('roles:id,name');
 
@@ -181,6 +194,8 @@ class UserService
             ],
             function (User $user, string $password) {
                 $user->update(['password' => $password]);
+
+                $user->notify(new PasswordResetCompletedNotification);
 
                 activity('user')
                     ->performedOn($user)

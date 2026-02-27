@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\AuthRequest;
+use App\Http\Requests\Api\UpdateProfileRequest;
 use App\Services\AuthService;
 use App\Services\MenuService;
 use Dedoc\Scramble\Attributes\Group;
@@ -66,6 +67,42 @@ class AuthController extends Controller
             ...$user->only(['id', 'name', 'email']),
             'roles' => $user->roles->pluck('name'),
         ]);
+    }
+
+    /**
+     * Update current user profile.
+     */
+    public function updateProfile(UpdateProfileRequest $request): JsonResponse
+    {
+        $user = $request->user();
+        $data = $request->validated();
+        $changes = [];
+
+        if (isset($data['name'])) {
+            $changes['name'] = $data['name'];
+        }
+
+        if (isset($data['password'])) {
+            $changes['password'] = $data['password'];
+        }
+
+        if ($changes) {
+            $old = collect($changes)->keys()->mapWithKeys(fn ($key) => [$key => $key === 'password' ? '******' : $user->$key])->all();
+
+            $user->update($changes);
+
+            activity('user')
+                ->performedOn($user)
+                ->causedBy($user)
+                ->event('profile_updated')
+                ->withProperties([
+                    'old' => $old,
+                    'attributes' => collect($changes)->map(fn ($v, $k) => $k === 'password' ? '******' : $v)->all(),
+                ])
+                ->log('User profile updated');
+        }
+
+        return $this->success($user->only(['id', 'name', 'email']));
     }
 
     /**

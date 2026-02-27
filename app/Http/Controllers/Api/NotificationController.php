@@ -61,6 +61,16 @@ class NotificationController extends Controller
     }
 
     /**
+     * Delete all notifications.
+     */
+    public function destroyAll(Request $request): JsonResponse
+    {
+        $count = $this->notificationService->deleteAll($request->user());
+
+        return $this->success(['deleted' => $count]);
+    }
+
+    /**
      * Get unread notification count.
      */
     public function unreadCount(Request $request): JsonResponse

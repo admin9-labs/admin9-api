@@ -37,6 +37,11 @@ class NotificationService
         $notification->delete();
     }
 
+    public function deleteAll(User $user): int
+    {
+        return $user->notifications()->delete();
+    }
+
     public function unreadCount(User $user): int
     {
         return $user->unreadNotifications()->count();

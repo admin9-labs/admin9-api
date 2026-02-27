@@ -29,7 +29,11 @@ class MenuRequest extends EfficientSceneFormRequest
     private function commonRules(): array
     {
         return [
-            'parent_id' => ['nullable', 'integer', Rule::exists('menus', 'id')],
+            'parent_id' => ['nullable', 'integer', 'min:0', function (string $attribute, mixed $value, \Closure $fail) {
+                if ($value !== null && $value !== 0 && ! \App\Models\Menu::where('id', $value)->exists()) {
+                    $fail('The selected parent id is invalid.');
+                }
+            }],
             'type' => ['nullable', 'integer', Rule::in([Menu::TYPE_DIRECTORY, Menu::TYPE_MENU, Menu::TYPE_BUTTON])],
             'path' => ['nullable', 'string', 'max:255', 'regex:/^[^<>]*$/'],
             'component' => ['nullable', 'string', 'max:255', 'regex:/^[^<>]*$/'],

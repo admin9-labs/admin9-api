@@ -11,6 +11,19 @@ use Illuminate\Http\JsonResponse;
 #[Group('Password Reset')]
 class PasswordResetController extends Controller
 {
+    /**
+     * Send password reset link.
+     */
+    public function forgot(ResetPasswordRequest $request, UserService $service): JsonResponse
+    {
+        $service->sendResetLink($request->validated('email'));
+
+        return $this->success(message: 'Reset link has been sent to your email');
+    }
+
+    /**
+     * Reset password with token.
+     */
     public function reset(ResetPasswordRequest $request, UserService $service): JsonResponse
     {
         $service->completePasswordReset(

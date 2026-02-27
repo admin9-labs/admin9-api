@@ -35,6 +35,10 @@ Route::prefix('auth')->group(function () {
         ->name('auth.refresh');
 });
 
+Route::post('password/forgot', [PasswordResetController::class, 'forgot'])
+    ->middleware('throttle:5,1')
+    ->name('password.forgot');
+
 Route::post('password/reset', [PasswordResetController::class, 'reset'])
     ->middleware('throttle:5,1')
     ->name('password.reset');

@@ -4,6 +4,7 @@ namespace Tests\Feature\Api;
 
 use App\Models\User;
 use App\Notifications\PasswordResetCompletedNotification;
+use App\Notifications\PasswordResetNotification;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
@@ -139,6 +140,62 @@ class PasswordResetTest extends TestCase
             'email' => $user->email,
             'password' => 'weakpass',
             'password_confirmation' => 'weakpass',
+        ]);
+
+        $this->assertBusinessError($response, 422);
+    }
+
+    public function test_forgot_sends_reset_email(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create(['is_active' => true]);
+
+        $response = $this->postJson('/api/password/forgot', [
+            'email' => $user->email,
+        ]);
+
+        $this->assertBusinessSuccess($response);
+        Notification::assertSentTo($user, PasswordResetNotification::class);
+    }
+
+    public function test_forgot_does_not_reveal_nonexistent_email(): void
+    {
+        Notification::fake();
+
+        $response = $this->postJson('/api/password/forgot', [
+            'email' => 'nonexistent@example.com',
+        ]);
+
+        $this->assertBusinessError($response);
+        Notification::assertNothingSent();
+    }
+
+    public function test_forgot_does_not_send_to_disabled_user(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create(['is_active' => false]);
+
+        $response = $this->postJson('/api/password/forgot', [
+            'email' => $user->email,
+        ]);
+
+        $this->assertBusinessError($response);
+        Notification::assertNotSentTo($user, PasswordResetNotification::class);
+    }
+
+    public function test_forgot_validates_email_required(): void
+    {
+        $response = $this->postJson('/api/password/forgot', []);
+
+        $this->assertBusinessError($response, 422);
+    }
+
+    public function test_forgot_validates_email_format(): void
+    {
+        $response = $this->postJson('/api/password/forgot', [
+            'email' => 'not-an-email',
         ]);
 
         $this->assertBusinessError($response, 422);

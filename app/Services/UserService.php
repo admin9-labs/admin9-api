@@ -173,6 +173,32 @@ class UserService
     /**
      * @throws BusinessException
      */
+    public function sendResetLink(string $email): void
+    {
+        $user = User::where('email', $email)->first();
+
+        if (! $user) {
+            throw new BusinessException('User not found');
+        }
+
+        if (! $user->is_active) {
+            throw new BusinessException('User account is disabled');
+        }
+
+        $token = Password::broker()->createToken($user);
+
+        $user->notify(new PasswordResetNotification($token, $user->email));
+
+        activity('user')
+            ->performedOn($user)
+            ->causedBy($user)
+            ->event('password_reset_requested')
+            ->log('Password reset requested by user');
+    }
+
+    /**
+     * @throws BusinessException
+     */
     public function completePasswordReset(array $data): void
     {
         $user = User::where('email', $data['email'])->first();

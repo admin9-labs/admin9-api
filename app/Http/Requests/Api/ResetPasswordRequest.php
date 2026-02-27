@@ -7,6 +7,13 @@ use Mitoop\LaravelEfficientFormRequest\EfficientSceneFormRequest;
 
 class ResetPasswordRequest extends EfficientSceneFormRequest
 {
+    public function forgotRules(): array
+    {
+        return [
+            'email' => ['bail', 'required', 'string', 'email:filter', 'max:255'],
+        ];
+    }
+
     public function resetRules(): array
     {
         return [

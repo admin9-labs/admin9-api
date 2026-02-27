@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\HealthController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PasswordResetController;
 use Illuminate\Support\Facades\Route;
 
@@ -11,8 +12,14 @@ Route::get('/health', HealthController::class)
 
 Route::middleware('auth:api')->group(function () {
     Route::get('/me', [AuthController::class, 'me'])->name('auth.me');
+    Route::patch('/me', [AuthController::class, 'updateProfile'])->name('auth.me.update');
     Route::get('/me/menu', [AuthController::class, 'menu'])->name('auth.me.menu');
     Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
+
+    // Notifications
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.readAll');
 });
 
 Route::prefix('auth')->group(function () {

@@ -97,11 +97,11 @@ class MenuService
     {
         if (isset($data['parent_id']) && $data['parent_id'] !== 0) {
             if ($data['parent_id'] === $menu->id) {
-                throw new BusinessException('Cannot set menu as its own parent', 422);
+                throw new BusinessException('Cannot set menu as its own parent');
             }
 
             if ($menu->descendants()->where('id', $data['parent_id'])->exists()) {
-                throw new BusinessException('Cannot set a descendant as parent', 422);
+                throw new BusinessException('Cannot set a descendant as parent');
             }
         }
 
@@ -131,7 +131,7 @@ class MenuService
     public function deleteMenu(Menu $menu): void
     {
         if ($menu->children()->exists()) {
-            throw new BusinessException('Cannot delete menu that has children. Remove children first', 403);
+            throw new BusinessException('Cannot delete menu that has children. Remove children first');
         }
 
         DB::transaction(function () use ($menu) {

@@ -27,7 +27,7 @@ class EnsureUserIsActive
         if ($user && ! $user->is_active) {
             auth('api')->logout();
 
-            throw new BusinessException('Your account has been disabled', 403);
+            throw new BusinessException('Your account has been disabled');
         }
 
         return $next($request);

@@ -99,7 +99,7 @@ class SuperAdminStealthTest extends TestCase
             'role_ids' => [$adminRole->id],
         ]);
 
-        $this->assertBusinessError($response, 403);
+        $this->assertBusinessError($response);
     }
 
     public function test_super_admin_can_reset_own_password(): void
@@ -131,7 +131,7 @@ class SuperAdminStealthTest extends TestCase
             'email' => $superAdmin->email,
         ]);
 
-        $this->assertBusinessError($response, 403);
+        $this->assertBusinessError($response);
     }
 
     public function test_other_user_cannot_reset_super_admin_password(): void
@@ -143,6 +143,6 @@ class SuperAdminStealthTest extends TestCase
 
         $response = $this->postJson("/api/system/users/{$superAdmin->id}/reset-password");
 
-        $this->assertBusinessError($response, 403);
+        $this->assertBusinessError($response);
     }
 }

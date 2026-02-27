@@ -119,7 +119,7 @@ class TokenTest extends TestCase
             'Authorization' => "Bearer {$token}",
         ])->postJson('/api/auth/refresh');
 
-        $this->assertBusinessError($response, 403);
+        $this->assertBusinessError($response);
     }
 
     public function test_token_is_invalid_after_logout(): void
@@ -204,7 +204,7 @@ class TokenTest extends TestCase
         $response = $this->withHeaders(['Authorization' => "Bearer {$token}"])
             ->getJson('/api/me');
 
-        $this->assertBusinessError($response, 403);
+        $this->assertBusinessError($response);
     }
 
     public function test_refresh_with_blacklisted_token_fails(): void

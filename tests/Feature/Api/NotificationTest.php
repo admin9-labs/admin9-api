@@ -142,7 +142,7 @@ class NotificationTest extends TestCase
 
         $response = $this->patchJson('/api/notifications/nonexistent-uuid/read');
 
-        $this->assertBusinessError($response, 404);
+        $this->assertBusinessError($response);
     }
 
     public function test_mark_all_notifications_as_read(): void
@@ -175,7 +175,7 @@ class NotificationTest extends TestCase
 
         $response = $this->patchJson("/api/notifications/{$notification->id}/read");
 
-        $this->assertBusinessError($response, 404);
+        $this->assertBusinessError($response);
     }
 
     // -------------------------------------------------------
@@ -203,7 +203,7 @@ class NotificationTest extends TestCase
 
         $response = $this->deleteJson('/api/notifications/nonexistent-uuid');
 
-        $this->assertBusinessError($response, 404);
+        $this->assertBusinessError($response);
     }
 
     public function test_user_cannot_delete_another_users_notification(): void
@@ -219,7 +219,7 @@ class NotificationTest extends TestCase
 
         $response = $this->deleteJson("/api/notifications/{$notification->id}");
 
-        $this->assertBusinessError($response, 404);
+        $this->assertBusinessError($response);
     }
 
     // -------------------------------------------------------

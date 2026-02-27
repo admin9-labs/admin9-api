@@ -23,7 +23,7 @@ class DictionaryItemService
             return DictionaryItem::create($data);
         } catch (QueryException $e) {
             if ($this->isUniqueConstraintViolation($e)) {
-                throw new BusinessException('Dictionary item value already exists in this type', 422);
+                throw new BusinessException('Dictionary item value already exists in this type');
             }
             throw $e;
         }
@@ -40,7 +40,7 @@ class DictionaryItemService
             return $item;
         } catch (QueryException $e) {
             if ($this->isUniqueConstraintViolation($e)) {
-                throw new BusinessException('Dictionary item value already exists in this type', 422);
+                throw new BusinessException('Dictionary item value already exists in this type');
             }
             throw $e;
         }

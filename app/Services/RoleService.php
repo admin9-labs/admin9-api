@@ -22,7 +22,7 @@ class RoleService
     public function createRole(string $name, array $menuIds = [], ?string $locale = null): Role
     {
         if ($name === RoleEnum::SuperAdmin->value) {
-            throw new BusinessException('Cannot create role with reserved name: '.$name, 403);
+            throw new BusinessException('Cannot create role with reserved name: '.$name);
         }
 
         $this->validateMenuIds($menuIds);
@@ -63,11 +63,11 @@ class RoleService
     public function updateRole(Role $role, string $name, ?array $menuIds = null, ?string $locale = null): Role
     {
         if ($role->name === RoleEnum::SuperAdmin->value) {
-            throw new BusinessException('Cannot modify super-admin role', 403);
+            throw new BusinessException('Cannot modify super-admin role');
         }
 
         if ($name === RoleEnum::SuperAdmin->value && $role->name !== RoleEnum::SuperAdmin->value) {
-            throw new BusinessException('Cannot use reserved role name: '.$name, 403);
+            throw new BusinessException('Cannot use reserved role name: '.$name);
         }
 
         if ($menuIds !== null) {
@@ -110,11 +110,11 @@ class RoleService
             $role = Role::lockForUpdate()->findOrFail($role->id);
 
             if ($role->name === RoleEnum::SuperAdmin->value) {
-                throw new BusinessException('Cannot delete super-admin role', 403);
+                throw new BusinessException('Cannot delete super-admin role');
             }
 
             if ($role->users()->exists()) {
-                throw new BusinessException('Cannot delete role that has users assigned. Remove users from this role first', 403);
+                throw new BusinessException('Cannot delete role that has users assigned. Remove users from this role first');
             }
 
             $roleName = $role->name;
@@ -176,7 +176,7 @@ class RoleService
 
         $count = Menu::whereIn('id', $menuIds)->count();
         if ($count !== count(array_unique($menuIds))) {
-            throw new BusinessException('Invalid menu IDs', 422);
+            throw new BusinessException('Invalid menu IDs');
         }
     }
 }

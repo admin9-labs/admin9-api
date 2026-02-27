@@ -95,7 +95,7 @@ class DictionaryTypeTest extends TestCase
 
         $response = $this->deleteJson("/api/system/dict-types/{$type->id}");
 
-        $this->assertBusinessError($response, 403);
+        $this->assertBusinessError($response);
 
         $this->assertDatabaseHas('dictionary_types', ['id' => $type->id]);
     }

@@ -49,7 +49,7 @@ class DictionaryTypeService
             return $type;
         } catch (QueryException $e) {
             if ($this->isUniqueConstraintViolation($e)) {
-                throw new BusinessException('Dictionary type name or code already exists', 422);
+                throw new BusinessException('Dictionary type name or code already exists');
             }
             throw $e;
         }
@@ -67,7 +67,7 @@ class DictionaryTypeService
             return $type;
         } catch (QueryException $e) {
             if ($this->isUniqueConstraintViolation($e)) {
-                throw new BusinessException('Dictionary type name or code already exists', 422);
+                throw new BusinessException('Dictionary type name or code already exists');
             }
             throw $e;
         }
@@ -79,7 +79,7 @@ class DictionaryTypeService
     public function deleteType(DictionaryType $type): void
     {
         if ($type->items()->exists()) {
-            throw new BusinessException('Cannot delete dictionary type that has items. Remove items first', 403);
+            throw new BusinessException('Cannot delete dictionary type that has items. Remove items first');
         }
 
         $typeId = $type->id;

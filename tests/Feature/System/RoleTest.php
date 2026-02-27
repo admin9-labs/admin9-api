@@ -90,7 +90,7 @@ class RoleTest extends TestCase
 
         $response = $this->deleteJson("/api/system/roles/{$role->id}");
 
-        $this->assertBusinessError($response, 403);
+        $this->assertBusinessError($response);
 
         $this->assertDatabaseHas('roles', ['id' => $role->id]);
     }
@@ -116,7 +116,7 @@ class RoleTest extends TestCase
             'menu_ids' => [],
         ]);
 
-        $this->assertBusinessError($response, 403);
+        $this->assertBusinessError($response);
     }
 
     public function test_can_create_role_with_admin_name(): void
@@ -156,7 +156,7 @@ class RoleTest extends TestCase
             'menu_ids' => [],
         ]);
 
-        $this->assertBusinessError($response, 403);
+        $this->assertBusinessError($response);
     }
 
     public function test_can_delete_non_super_admin_system_role(): void
@@ -180,7 +180,7 @@ class RoleTest extends TestCase
 
         $response = $this->deleteJson("/api/system/roles/{$superAdminRole->id}");
 
-        $this->assertBusinessError($response, 403);
+        $this->assertBusinessError($response);
     }
 
     public function test_user_without_permission_cannot_list_roles(): void
@@ -229,7 +229,7 @@ class RoleTest extends TestCase
             'menu_ids' => [],
         ]);
 
-        $this->assertBusinessError($response, 403);
+        $this->assertBusinessError($response);
     }
 
     public function test_cannot_create_role_with_invalid_characters(): void

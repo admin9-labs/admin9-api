@@ -47,7 +47,7 @@ class PasswordResetTest extends TestCase
             'password_confirmation' => 'NewPass1word',
         ]);
 
-        $this->assertBusinessError($response, 422);
+        $this->assertBusinessError($response);
     }
 
     public function test_missing_fields_returns_validation_error(): void
@@ -91,7 +91,7 @@ class PasswordResetTest extends TestCase
             'password_confirmation' => 'AnotherPass1',
         ]);
 
-        $this->assertBusinessError($response, 422);
+        $this->assertBusinessError($response);
     }
 
     public function test_disabled_user_cannot_reset_password(): void
@@ -106,7 +106,7 @@ class PasswordResetTest extends TestCase
             'password_confirmation' => 'NewPass1word',
         ]);
 
-        $this->assertBusinessError($response, 403);
+        $this->assertBusinessError($response);
     }
 
     public function test_expired_token_returns_error(): void
@@ -126,7 +126,7 @@ class PasswordResetTest extends TestCase
             'password_confirmation' => 'NewPass1word',
         ]);
 
-        $this->assertBusinessError($response, 422);
+        $this->assertBusinessError($response);
     }
 
     public function test_weak_password_is_rejected(): void

@@ -9,7 +9,7 @@ use Mitoop\Http\Exceptions\ClientSafeException;
  */
 class BusinessException extends ClientSafeException
 {
-    public function __construct(string $message, int $errorCode = 400)
+    public function __construct(string $message, ?int $errorCode = null)
     {
         parent::__construct($message, null, $errorCode);
     }

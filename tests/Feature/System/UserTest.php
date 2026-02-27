@@ -89,7 +89,7 @@ class UserTest extends TestCase
             'is_active' => false,
         ]);
 
-        $this->assertBusinessError($response, 403);
+        $this->assertBusinessError($response);
     }
 
     public function test_cannot_disable_super_admin(): void
@@ -103,7 +103,7 @@ class UserTest extends TestCase
             'is_active' => false,
         ]);
 
-        $this->assertBusinessError($response, 403);
+        $this->assertBusinessError($response);
     }
 
     public function test_admin_can_reset_password(): void
@@ -134,7 +134,7 @@ class UserTest extends TestCase
 
         $response = $this->postJson("/api/system/users/{$superAdmin->id}/reset-password");
 
-        $this->assertBusinessError($response, 403);
+        $this->assertBusinessError($response);
     }
 
     public function test_admin_can_assign_roles_to_user(): void
@@ -181,7 +181,7 @@ class UserTest extends TestCase
             'role_ids' => [$superAdminRole->id],
         ]);
 
-        $this->assertBusinessError($response, 403);
+        $this->assertBusinessError($response);
     }
 
     public function test_cannot_assign_roles_to_super_admin_user(): void
@@ -197,7 +197,7 @@ class UserTest extends TestCase
             'role_ids' => [$adminRole->id],
         ]);
 
-        $this->assertBusinessError($response, 403);
+        $this->assertBusinessError($response);
     }
 
     public function test_assign_roles_validates_role_ids_required(): void
@@ -375,6 +375,6 @@ class UserTest extends TestCase
             'email' => 'hacked@example.com',
         ]);
 
-        $this->assertBusinessError($response, 403);
+        $this->assertBusinessError($response);
     }
 }

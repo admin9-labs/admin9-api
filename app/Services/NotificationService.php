@@ -13,7 +13,7 @@ class NotificationService
         $notification = $user->notifications()->find($notificationId);
 
         if (! $notification) {
-            throw new BusinessException('Notification not found', 404);
+            throw new BusinessException('Notification not found');
         }
 
         $notification->markAsRead();
@@ -31,7 +31,7 @@ class NotificationService
         $notification = $user->notifications()->find($notificationId);
 
         if (! $notification) {
-            throw new BusinessException('Notification not found', 404);
+            throw new BusinessException('Notification not found');
         }
 
         $notification->delete();

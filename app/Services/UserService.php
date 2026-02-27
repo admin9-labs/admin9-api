@@ -44,7 +44,7 @@ class UserService
             $isSuperAdmin = $user->hasRole(RoleEnum::SuperAdmin->value);
             $isSelf = auth()->id() === $user->id;
             if ($isSuperAdmin && ! $isSelf) {
-                throw new BusinessException('Cannot modify super-admin user', 403);
+                throw new BusinessException('Cannot modify super-admin user');
             }
 
             $changes = collect($data)->only(['name', 'email'])->toArray();
@@ -67,7 +67,7 @@ class UserService
     public function syncRoles(User $user, array $roleIds): Collection
     {
         if ($user->hasRole(RoleEnum::SuperAdmin->value)) {
-            throw new BusinessException('Cannot modify super-admin user roles', 403);
+            throw new BusinessException('Cannot modify super-admin user roles');
         }
 
         $roleIds = array_values(array_unique($roleIds));
@@ -75,11 +75,11 @@ class UserService
         $roles = SpatieRole::whereIn('id', $roleIds)->where('guard_name', 'api')->get();
 
         if ($roles->count() !== count($roleIds)) {
-            throw new BusinessException('Invalid role IDs', 422);
+            throw new BusinessException('Invalid role IDs');
         }
 
         if ($roles->contains('name', RoleEnum::SuperAdmin->value)) {
-            throw new BusinessException('Cannot assign super-admin role', 403);
+            throw new BusinessException('Cannot assign super-admin role');
         }
 
         $oldRoles = $user->roles()->pluck('name')->all();
@@ -109,11 +109,11 @@ class UserService
     public function toggleStatus(User $user, bool $isActive, int $operatorId): User
     {
         if ($user->id === $operatorId) {
-            throw new BusinessException('Cannot disable your own account', 403);
+            throw new BusinessException('Cannot disable your own account');
         }
 
         if (! $isActive && $user->hasRole(RoleEnum::SuperAdmin->value)) {
-            throw new BusinessException('Cannot disable super-admin users', 403);
+            throw new BusinessException('Cannot disable super-admin users');
         }
 
         if ($user->is_active === $isActive) {
@@ -156,7 +156,7 @@ class UserService
         $isSelf = auth()->id() === $user->id;
 
         if ($isSuperAdmin && ! $isSelf) {
-            throw new BusinessException('Cannot reset super-admin password via API', 403);
+            throw new BusinessException('Cannot reset super-admin password via API');
         }
 
         $token = Password::broker()->createToken($user);
@@ -178,11 +178,11 @@ class UserService
         $user = User::where('email', $data['email'])->first();
 
         if (! $user) {
-            throw new BusinessException('User not found', 422);
+            throw new BusinessException('User not found');
         }
 
         if (! $user->is_active) {
-            throw new BusinessException('User account is disabled', 403);
+            throw new BusinessException('User account is disabled');
         }
 
         $status = Password::broker()->reset(
@@ -212,7 +212,7 @@ class UserService
                 default => 'Password reset failed',
             };
 
-            throw new BusinessException($message, 422);
+            throw new BusinessException($message);
         }
     }
 }

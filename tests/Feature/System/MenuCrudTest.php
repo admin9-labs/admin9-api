@@ -93,7 +93,7 @@ class MenuCrudTest extends TestCase
 
         $response = $this->deleteJson("/api/system/menus/{$parent->id}");
 
-        $this->assertBusinessError($response, 403);
+        $this->assertBusinessError($response);
     }
 
     public function test_cannot_set_menu_as_own_parent(): void
@@ -108,7 +108,7 @@ class MenuCrudTest extends TestCase
             'parent_id' => $menu->id,
         ]);
 
-        $this->assertBusinessError($response, 422);
+        $this->assertBusinessError($response);
     }
 
     public function test_cannot_create_duplicate_name(): void

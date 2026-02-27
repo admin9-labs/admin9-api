@@ -18,7 +18,7 @@ class PasswordResetNotification extends BaseNotification
 
     public function toMail(object $notifiable): MailMessage
     {
-        $url = config('app.frontend_url').'/reset-password?token='.$this->token.'&email='.urlencode($this->email);
+        $url = config('app.frontend_url').'/auth/reset-password?token='.$this->token.'&email='.urlencode($this->email);
         $expire = config('auth.passwords.users.expire', 60);
 
         return (new MailMessage)
